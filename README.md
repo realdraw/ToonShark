@@ -48,9 +48,7 @@ ToonShark takes a webtoon PDF, splits it into individual image slices, and expor
 
 ## Download
 
-> Releases coming soon.
-
-Pre-built installers will be available for:
+Pre-built installers are available on the [Releases](https://github.com/realdraw/ToonShark/releases) page.
 
 | OS | Format |
 |----|--------|
