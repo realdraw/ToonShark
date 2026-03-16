@@ -45,7 +45,7 @@ test('switches language to Korean and back to English', async ({ page }) => {
   await expect(page.getByText(/Saved!|저장 완료!/)).toBeVisible({ timeout: 3_000 })
 
   // "저장 완료!" 피드백이 사라질 때까지 대기
-  await page.waitForTimeout(2_100)
+  await expect(page.getByText(/Saved!|저장 완료!/)).toBeHidden({ timeout: 5_000 })
 
   // 다시 영어로 전환
   await languageSelect.selectOption('en')

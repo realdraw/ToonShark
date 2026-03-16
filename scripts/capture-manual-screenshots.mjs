@@ -103,8 +103,8 @@ async function main() {
     // ───────── 7. Preview Page ─────────
     console.log('\n[Preview]')
     await page.getByRole('button', { name: 'Preview' }).click()
-    // Wait for preview to load
-    await page.waitForTimeout(1500)
+    // Wait for first image to load in preview
+    await page.locator('img').first().waitFor({ state: 'visible', timeout: 10000 })
     await screenshot(page, '06-preview')
 
     // Go back to job detail
@@ -116,21 +116,28 @@ async function main() {
     // Click first slice thumbnail
     const sliceThumbs = page.locator('button').filter({ has: page.locator('img') })
     await sliceThumbs.first().click()
-    await page.waitForTimeout(500)
+    // Wait for the main image to load in slice viewer
+    await page.locator('.flex-1.overflow-auto img').waitFor({ state: 'visible', timeout: 10000 })
     await screenshot(page, '07-slice-viewer')
 
     // ───────── 9. Thumbnail capture dropdown ─────────
     console.log('\n[Thumbnail]')
     await page.getByRole('button', { name: 'Thumbnail' }).click()
-    await page.waitForTimeout(300)
+    // Wait for dropdown to appear
+    await page.locator('button').filter({ hasText: 'Ridi' }).first().waitFor({ state: 'visible' })
     await screenshot(page, '08-thumbnail-dropdown')
 
     // Select first platform to show crop overlay
     const platformBtn = page.locator('button').filter({ hasText: 'Ridi' }).first()
     if (await platformBtn.isVisible()) {
       await platformBtn.click()
-      await page.waitForTimeout(500)
-      await screenshot(page, '09-thumbnail-crop')
+      // CropOverlay depends on image onLoad + displaySize — wait for the dim overlay
+      try {
+        await page.locator('.absolute.inset-0.bg-black\\/50').waitFor({ state: 'visible', timeout: 5000 })
+        await screenshot(page, '09-thumbnail-crop')
+      } catch {
+        console.log('  ⚠ Crop overlay did not appear (image may not have loaded), skipping 09-thumbnail-crop')
+      }
       // Cancel crop
       await page.keyboard.press('Escape')
     }
@@ -141,7 +148,8 @@ async function main() {
     await page.keyboard.press('Escape')
     await page.getByText('Created', { exact: true }).waitFor()
     await page.getByRole('button', { name: 'Episode Export' }).click()
-    await page.waitForTimeout(500)
+    // Wait for platform list to load
+    await page.getByText('South Korea').waitFor({ state: 'visible', timeout: 5000 })
     await screenshot(page, '10-export')
 
     // ───────── 11. Settings Page ─────────
@@ -152,32 +160,37 @@ async function main() {
 
     // Open Theme section
     await page.getByText('Theme').click()
-    await page.waitForTimeout(200)
+    await page.locator('option[value="light"]').waitFor({ state: 'attached' })
     await screenshot(page, '12-settings-theme')
 
     // Open Device Presets section
     await page.getByText('Device Presets').click()
-    await page.waitForTimeout(200)
+    await page.getByText('Add Device').waitFor({ state: 'visible' })
     await screenshot(page, '13-settings-devices')
 
     // ───────── 12. Light theme ─────────
     console.log('\n[Light Theme]')
-    // Close any open section, then open theme
     // Theme section might be collapsed — click the Theme header
     const themeSectionBtn = page.locator('button').filter({ hasText: /^Theme/ }).first()
     await themeSectionBtn.click()
-    await page.waitForTimeout(300)
-    // Find the select inside the visible theme section
+    // Wait for select to be visible
     const themeSelect = page.locator('select').filter({ has: page.locator('option[value="light"]') })
+    await themeSelect.waitFor({ state: 'visible' })
     await themeSelect.selectOption('light')
-    await page.waitForTimeout(500)
+    // Wait for theme to apply — background color changes from dark to light
+    await page.waitForFunction(
+      () => getComputedStyle(document.body).backgroundColor !== 'rgb(15, 23, 42)',
+      { timeout: 5000 }
+    ).catch(() => {
+      // Fallback: theme may already be applied
+    })
     await screenshot(page, '14-settings-light-theme')
 
     // Save and go home to show light theme home
     await page.getByRole('button', { name: /Save/ }).click()
-    await page.waitForTimeout(1500)
+    await page.getByText(/Saved!|저장 완료!/).waitFor({ state: 'visible', timeout: 3000 })
     await page.evaluate(() => { window.location.hash = '#/' })
-    await page.waitForTimeout(500)
+    await page.getByRole('heading', { name: 'ToonShark' }).waitFor()
     await screenshot(page, '15-home-light-theme')
 
     console.log('\n✅ All screenshots captured!')
