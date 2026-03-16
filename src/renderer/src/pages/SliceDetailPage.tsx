@@ -3,7 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useJobStore } from '../stores/jobStore'
 import { useTranslation } from '../i18n'
 import { useToastStore } from '../stores/toastStore'
-import { toLocalFileUrl } from '@shared/utils'
+import { toLocalFileUrl, extractDir } from '@shared/utils'
 import type { Country, Platform, ThumbnailSpec } from '@shared/types'
 import CropOverlay from '../components/CropOverlay'
 
@@ -125,7 +125,7 @@ export default function SliceDetailPage() {
         platformId: cropTarget.platform.id,
         crop
       })
-      const dir = result.outputPath.substring(0, result.outputPath.lastIndexOf('/'))
+      const dir = extractDir(result.outputPath)
       setThumbnailDir(dir)
       const message = result.upscaled && result.sourceSize
         ? t.thumbnailSuccessUpscaled(result.sourceSize.width, result.sourceSize.height)

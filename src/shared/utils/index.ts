@@ -31,6 +31,15 @@ export function sanitizeFolderId(id: string): string {
   return s
 }
 
+/**
+ * Extract the parent directory from a file path.
+ * Works with both Unix (/) and Windows (\) separators.
+ */
+export function extractDir(filePath: string): string {
+  const lastSep = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'))
+  return lastSep > 0 ? filePath.substring(0, lastSep) : filePath
+}
+
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 1) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB']

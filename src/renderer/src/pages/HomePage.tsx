@@ -80,7 +80,7 @@ export default function HomePage() {
   const handleOpenFolder = async () => {
     try {
       const settings = await window.api.loadSettings()
-      await window.api.openPath(settings.baseDir)
+      if (settings.baseDir) await window.api.openPath(settings.baseDir)
     } catch (err) {
       window.api.log('warn', 'Failed to open folder', String(err))
     }

@@ -16,7 +16,10 @@ export async function launchElectronApp(testHomeDir: string): Promise<ElectronAp
     args: [join(process.cwd(), 'dist-electron/main/index.js')],
     env: {
       ...process.env,
+      // Unix
       HOME: testHomeDir,
+      // Windows — USERPROFILE is what Node's os.homedir() reads
+      USERPROFILE: testHomeDir,
       TMPDIR: join(testHomeDir, 'tmp'),
       TEMP: join(testHomeDir, 'tmp'),
       TMP: join(testHomeDir, 'tmp')

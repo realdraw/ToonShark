@@ -192,7 +192,7 @@ export default function SettingsPage() {
                   {t.browse}
                 </button>
                 <button
-                  onClick={() => window.api.openPath(form.baseDir)}
+                  onClick={() => form.baseDir && window.api.openPath(form.baseDir)}
                   className="px-4 py-2 bg-elevated hover:bg-hover-elevated rounded text-sm transition"
                 >
                   {t.open}

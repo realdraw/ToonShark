@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toErrorMessage, extractPdfName, formatBytes, toLocalFileUrl, sanitizeFolderId } from './index'
+import { toErrorMessage, extractPdfName, extractDir, formatBytes, toLocalFileUrl, sanitizeFolderId } from './index'
 
 describe('extractPdfName', () => {
   it('should extract name from unix path', () => {
@@ -259,5 +259,27 @@ describe('toErrorMessage', () => {
 
   it('should handle Error subclass', () => {
     expect(toErrorMessage(new TypeError('type err'))).toBe('type err')
+  })
+})
+
+describe('extractDir', () => {
+  it('should extract directory from Unix path', () => {
+    expect(extractDir('/Users/beni/data/thumbnail/file.jpg')).toBe('/Users/beni/data/thumbnail')
+  })
+
+  it('should extract directory from Windows path', () => {
+    expect(extractDir('D:\\data\\export\\kr\\ridi\\thumbnail\\file.jpg')).toBe('D:\\data\\export\\kr\\ridi\\thumbnail')
+  })
+
+  it('should handle mixed separators', () => {
+    expect(extractDir('D:\\data/export/thumbnail/file.jpg')).toBe('D:\\data/export/thumbnail')
+  })
+
+  it('should return path as-is when no separator found', () => {
+    expect(extractDir('file.jpg')).toBe('file.jpg')
+  })
+
+  it('should handle root-level Unix path', () => {
+    expect(extractDir('/file.jpg')).toBe('/file.jpg')
   })
 })

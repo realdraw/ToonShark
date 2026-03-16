@@ -17,7 +17,7 @@ test('runs a fixed mode slice job with custom height', async ({ electronApp, pag
   await page.getByRole('button', { name: /^Fixed$|^고정$/ }).click()
 
   // 슬라이스 높이 변경
-  const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('..').locator('input[type="number"]')
+  const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
   await heightInput.fill('500')
 
   // 작업 실행
@@ -49,10 +49,10 @@ test('runs a fixed mode slice with start offset', async ({ electronApp, page, te
   await page.getByRole('button', { name: /^Fixed$|^고정$/ }).click()
 
   // 슬라이스 높이와 시작 오프셋 설정
-  const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('..').locator('input[type="number"]')
+  const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
   await heightInput.fill('500')
 
-  const offsetInput = page.locator('label').filter({ hasText: /Start Offset|시작 오프셋/ }).locator('..').locator('input[type="number"]')
+  const offsetInput = page.locator('label').filter({ hasText: /Start Offset|시작 오프셋/ }).locator('../..').locator('input[type="number"]')
   await offsetInput.fill('100')
 
   // 작업 실행
