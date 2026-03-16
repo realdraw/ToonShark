@@ -8,6 +8,7 @@ export default defineConfig({
   expect: {
     timeout: 5_000
   },
+  retries: process.env.CI ? 1 : 0,
   reporter: 'list',
   use: {
     trace: 'on-first-retry'

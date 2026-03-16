@@ -16,13 +16,13 @@ async function sliceAndGoToDetail(
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: 'Open PDF' }).click()
+  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
-  await page.getByRole('button', { name: 'Run' }).click()
-  await expect(page.getByRole('button', { name: 'Detail' }).first()).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
+  await expect(page.getByRole('button', { name: /^Detail$|^상세$/ }).first()).toBeVisible({ timeout: 20_000 })
 
-  await page.getByRole('button', { name: 'Detail' }).first().click()
+  await page.getByRole('button', { name: /^Detail$|^상세$/ }).first().click()
   await expect(page).toHaveURL(/\/job\//)
 }
 
@@ -30,35 +30,35 @@ async function sliceAndGoToDetail(
 test('job detail page shows complete metadata', async ({ electronApp, page, testBaseDir }) => {
   await sliceAndGoToDetail(electronApp, page, testBaseDir)
 
-  // 메타 정보 필드 확인 (exact: true로 중복 매칭 방지)
-  await expect(page.getByText('Created', { exact: true })).toBeVisible()
-  await expect(page.getByText('Pages', { exact: true })).toBeVisible()
-  await expect(page.getByText('Slices', { exact: true })).toBeVisible()
-  await expect(page.getByText('Mode', { exact: true })).toBeVisible()
-  await expect(page.getByText('Prefix', { exact: true })).toBeVisible()
-  await expect(page.getByText('Source PDF', { exact: true })).toBeVisible()
+  // 메타 정보 필드 확인
+  await expect(page.getByText(/^Created$|^생성일$/)).toBeVisible()
+  await expect(page.getByText(/^Pages$|^페이지$/)).toBeVisible()
+  await expect(page.getByText(/^Slices$|^슬라이스$/)).toBeVisible()
+  await expect(page.getByText(/^Mode$|^모드$/)).toBeVisible()
+  await expect(page.getByText(/^Prefix$|^접두사$/)).toBeVisible()
+  await expect(page.getByText(/^Source PDF$|^원본 PDF$/)).toBeVisible()
 
   // 액션 버튼 확인
-  await expect(page.getByRole('button', { name: 'Preview' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Episode Export' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Open Source PDF' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Open Folder' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Preview$|^미리보기$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Episode Export$|^에피소드 내보내기$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Open Source PDF$|^원본 PDF 열기$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Open Folder$|^폴더 열기$/ })).toBeVisible()
 
   // 슬라이스 썸네일 섹션 존재 확인
-  await expect(page.getByText(/Slices \(\d+\)/)).toBeVisible()
+  await expect(page.getByText(/Slices \(\d+\)|슬라이스 \(\d+\)/)).toBeVisible()
 })
 
 // 작업 상세에서 프리뷰 페이지로 이동
 test('navigates to preview page from job detail', async ({ electronApp, page, testBaseDir }) => {
   await sliceAndGoToDetail(electronApp, page, testBaseDir)
 
-  await page.getByRole('button', { name: 'Preview' }).click()
+  await page.getByRole('button', { name: /^Preview$|^미리보기$/ }).click()
   await expect(page).toHaveURL(/\/preview\//)
 
   // 프리뷰 페이지의 디바이스/크기 설정 UI 확인
-  await expect(page.getByText('Width')).toBeVisible()
-  await expect(page.getByText('Height')).toBeVisible()
-  await expect(page.getByText('Gap')).toBeVisible()
+  await expect(page.getByText(/^Width$|^너비$/)).toBeVisible()
+  await expect(page.getByText(/^Height$|^높이$/)).toBeVisible()
+  await expect(page.getByText(/^Gap$|^간격$/)).toBeVisible()
 
   // 디바이스 셀렉터 존재 확인
   const deviceSelect = page.locator('select').first()
@@ -77,8 +77,8 @@ test('navigates to slice detail from job detail thumbnails', async ({ electronAp
   await expect(page).toHaveURL(/\/job\/.+\/slice\?index=/)
 
   // 네비게이션 버튼 확인
-  await expect(page.getByRole('button', { name: 'Back' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Next' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Back$|^뒤로$/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Next$|^다음$/ })).toBeVisible()
 })
 
 // 슬라이스 상세 페이지에서 키보드 좌우 네비게이션 및 Escape 동작 검증

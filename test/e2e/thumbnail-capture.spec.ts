@@ -18,14 +18,14 @@ async function sliceAndGoToSliceDetail(
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: 'Open PDF' }).click()
+  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
-  await page.getByRole('button', { name: 'Run' }).click()
-  await expect(page.getByRole('button', { name: 'Detail' }).first()).toBeVisible({ timeout: 20_000 })
+  await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
+  await expect(page.getByRole('button', { name: /^Detail$|^상세$/ }).first()).toBeVisible({ timeout: 20_000 })
 
   // Go to job detail
-  await page.getByRole('button', { name: 'Detail' }).first().click()
+  await page.getByRole('button', { name: /^Detail$|^상세$/ }).first().click()
   await expect(page).toHaveURL(/\/job\//)
 
   // Click first slice thumbnail to go to slice detail
@@ -37,13 +37,13 @@ async function sliceAndGoToSliceDetail(
 test('slice detail page shows Thumbnail button', async ({ electronApp, page, testBaseDir }) => {
   await sliceAndGoToSliceDetail(electronApp, page, testBaseDir)
 
-  await expect(page.getByRole('button', { name: 'Thumbnail' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ })).toBeVisible()
 })
 
 test('thumbnail button shows platform dropdown', async ({ electronApp, page, testBaseDir }) => {
   await sliceAndGoToSliceDetail(electronApp, page, testBaseDir)
 
-  await page.getByRole('button', { name: 'Thumbnail' }).click()
+  await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
 
   // Should show dropdown with platforms that have thumbnail specs
   // ridi has thumbnail spec (360x522) in the default countries.json
@@ -58,7 +58,7 @@ test('captures thumbnail and shows folder button that persists after navigation'
   await expect(img).toBeVisible({ timeout: 5000 })
 
   // Click Thumbnail → pick platform
-  await page.getByRole('button', { name: 'Thumbnail' }).click()
+  await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
   await expect(page.getByText('360x522')).toBeVisible({ timeout: 3000 })
 
   // Click the first platform with thumbnail spec
@@ -66,16 +66,16 @@ test('captures thumbnail and shows folder button that persists after navigation'
   await platformButton.click()
 
   // Crop overlay should appear (Save and Cancel buttons)
-  await expect(page.getByRole('button', { name: 'Save' })).toBeVisible({ timeout: 3000 })
-  await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Save$|^저장$/ })).toBeVisible({ timeout: 3000 })
+  await expect(page.getByRole('button', { name: /^Cancel$|^취소$/ })).toBeVisible()
 
   // Confirm the crop
-  await page.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: /^Save$|^저장$/ }).click()
 
   // Success toast should appear
-  await expect(page.getByText('Thumbnail saved')).toBeVisible({ timeout: 5000 })
+  await expect(page.getByText(/^Thumbnail saved$|^썸네일 저장 완료$/)).toBeVisible({ timeout: 5000 })
 
-  // Folder button should appear (with title "Open Folder")
+  // Folder button should appear
   await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible()
 
   // Verify thumbnail file was created on disk
@@ -83,7 +83,7 @@ test('captures thumbnail and shows folder button that persists after navigation'
   expect(thumbnailFiles.length).toBeGreaterThan(0)
 
   // Navigate back to job detail and return — folder button should persist
-  await page.getByRole('button', { name: 'Back' }).click()
+  await page.getByRole('button', { name: /^Back$|^뒤로$/ }).click()
   await expect(page).toHaveURL(/\/job\/[^/]+$/)
 
   // Go back to slice detail
@@ -92,7 +92,7 @@ test('captures thumbnail and shows folder button that persists after navigation'
   await expect(page).toHaveURL(/\/slice\?index=/)
 
   // Folder button should still be visible (loaded from disk via getThumbnailDir)
-  await expect(page.locator('button[title="Open Folder"]')).toBeVisible({ timeout: 5000 })
+  await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible({ timeout: 5000 })
 })
 
 /**
