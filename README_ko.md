@@ -9,6 +9,14 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/realdraw/ToonShark/actions/workflows/ci.yml"><img src="https://github.com/realdraw/ToonShark/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/realdraw/ToonShark/releases/latest"><img src="https://img.shields.io/github/v/release/realdraw/ToonShark?include_prereleases" alt="Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License"></a>
+  <img src="https://img.shields.io/badge/macOS-supported-brightgreen" alt="macOS">
+  <img src="https://img.shields.io/badge/Windows-supported-brightgreen" alt="Windows">
+</p>
+
+<p align="center">
   <a href="README.md">English</a>
 </p>
 
