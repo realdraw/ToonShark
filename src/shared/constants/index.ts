@@ -20,5 +20,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
     imageGap: 0,
     scrollAmount: 300
   },
-  locale: 'en'
+  locale: 'en',
+  theme: 'dark'
 }

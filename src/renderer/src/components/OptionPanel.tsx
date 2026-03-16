@@ -39,14 +39,14 @@ export function OptionPanel({
     (value: PdfOptions[K]) => onOptionChange(key, value)
 
   return (
-    <div className="w-72 flex-shrink-0 bg-slate-800 border-r border-slate-700 overflow-y-auto p-4">
+    <div className="w-72 flex-shrink-0 bg-surface border-r border-border overflow-y-auto p-4">
       {/* Prefix */}
       <OptionField label={t.filePrefix} desc={t.filePrefixDesc}>
         <input
           type="text"
           value={options.prefix}
           onChange={(e) => onOptionChange('prefix', e.target.value)}
-          className="w-full px-3 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+          className="w-full px-3 py-1.5 bg-input border border-border-subtle rounded text-sm"
         />
       </OptionField>
 
@@ -58,7 +58,7 @@ export function OptionPanel({
             className={`flex-1 py-1.5 rounded text-xs font-medium transition ${
               options.mode === 'auto'
                 ? 'bg-blue-600 text-white'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-700'
+                : 'bg-input text-tertiary hover:bg-hover'
             }`}
           >
             {t.auto}
@@ -68,7 +68,7 @@ export function OptionPanel({
             className={`flex-1 py-1.5 rounded text-xs font-medium transition ${
               options.mode === 'fixed'
                 ? 'bg-blue-600 text-white'
-                : 'bg-slate-900 text-slate-400 hover:bg-slate-700'
+                : 'bg-input text-tertiary hover:bg-hover'
             }`}
           >
             {t.fixed}
@@ -78,7 +78,7 @@ export function OptionPanel({
 
       {/* Auto Mode Options */}
       {options.mode === 'auto' && (
-        <div className="space-y-3 mb-4 bg-slate-900/50 p-3 rounded border border-slate-700">
+        <div className="space-y-3 mb-4 bg-options-bg p-3 rounded border border-border">
           <OptionField compact label={t.whiteThreshold} desc={t.whiteThresholdDesc}>
             <div>
               <input
@@ -89,7 +89,7 @@ export function OptionPanel({
                 onChange={(e) => onOptionChange('whiteThreshold', Number(e.target.value))}
                 className="w-full"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <div className="flex justify-between text-[10px] text-muted mt-0.5">
                 <span>{t.loose}</span>
                 <span
                   className="px-1.5 py-0.5 rounded"
@@ -108,7 +108,7 @@ export function OptionPanel({
               onChange={(e) => onOptionChange('minWhiteRun', Number(e.target.value))}
               min={1}
               max={500}
-              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             />
           </OptionField>
           <OptionField compact label={t.minSliceHeightLabel} desc={t.minSliceHeightDesc}>
@@ -118,14 +118,14 @@ export function OptionPanel({
               onChange={(e) => onOptionChange('minSliceHeight', Number(e.target.value))}
               min={0}
               max={2000}
-              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             />
           </OptionField>
           <OptionField compact label={t.cutPositionLabel} desc={t.cutPositionDesc}>
             <select
               value={options.cutPosition}
               onChange={(e) => onOptionChange('cutPosition', e.target.value as CutPosition)}
-              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             >
               <option value="middle">{t.cutMiddle}</option>
               <option value="before-color">{t.cutBeforeColor}</option>
@@ -136,7 +136,7 @@ export function OptionPanel({
 
       {/* Fixed Mode Options */}
       {options.mode === 'fixed' && (
-        <div className="space-y-3 mb-4 bg-slate-900/50 p-3 rounded border border-slate-700">
+        <div className="space-y-3 mb-4 bg-options-bg p-3 rounded border border-border">
           <OptionField compact label={t.sliceHeightLabel} desc={t.sliceHeightDesc}>
             <input
               type="number"
@@ -144,7 +144,7 @@ export function OptionPanel({
               onChange={(e) => onOptionChange('sliceHeight', Number(e.target.value))}
               min={100}
               max={5000}
-              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             />
           </OptionField>
           <OptionField compact label={t.startOffsetLabel} desc={t.startOffsetDesc}>
@@ -153,7 +153,7 @@ export function OptionPanel({
               value={options.startOffset}
               onChange={(e) => onOptionChange('startOffset', Number(e.target.value))}
               min={0}
-              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-sm"
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             />
           </OptionField>
         </div>
@@ -171,13 +171,13 @@ export function OptionPanel({
             onChange={(e) => onOptionChange('pdfScale', Number(e.target.value))}
             className="w-full"
           />
-          <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+          <div className="flex justify-between text-[10px] text-muted mt-0.5">
             <span>{PDF_SCALE_MIN}x</span>
-            <span className="text-slate-300 font-medium">{options.pdfScale}x</span>
+            <span className="text-secondary font-medium">{options.pdfScale}x</span>
             <span>{PDF_SCALE_MAX}x</span>
           </div>
           {pageDims && (
-            <div className="text-[10px] text-slate-400 mt-1 text-center">
+            <div className="text-[10px] text-tertiary mt-1 text-center">
               {Math.floor(pageDims.width * options.pdfScale)} x {Math.floor(pageDims.height * options.pdfScale)}px
             </div>
           )}
@@ -185,7 +185,7 @@ export function OptionPanel({
       </OptionField>
 
       {error && (
-        <div className="bg-red-900/50 border border-red-700 rounded p-2 mb-4 text-red-300 text-xs">
+        <div className="bg-error-bg border border-error-border rounded p-2 mb-4 text-error-text text-xs">
           {error}
         </div>
       )}
@@ -194,7 +194,7 @@ export function OptionPanel({
       <button
         onClick={onRun}
         disabled={!canRun || isRunning}
-        className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg font-medium text-sm transition"
+        className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-elevated disabled:text-muted rounded-lg font-medium text-sm transition text-white"
       >
         {isRunning ? t.processing : t.run}
       </button>
@@ -208,14 +208,14 @@ export function OptionPanel({
               <span className="truncate">{runningPdfName}.pdf</span>
             </div>
           )}
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-xs text-tertiary mb-1">
             <span>
               {t[progress.stepKey]}
               {progress.total > 0 && ` (${progress.current}/${progress.total})`}
             </span>
             <span>{progress.percent}%</span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-elevated rounded-full h-2 overflow-hidden">
             <div
               className="bg-blue-500 h-full rounded-full transition-all duration-300"
               style={{ width: `${progress.percent}%` }}

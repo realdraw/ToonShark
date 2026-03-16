@@ -7,6 +7,7 @@ export const DEFAULT_AUTO_SLICE = {
 }
 
 export type Locale = 'en' | 'ko'
+export type Theme = 'light' | 'dark' | 'system'
 export type OutputFormat = 'png' | 'jpg'
 export type SliceMode = 'fixed' | 'auto'
 export type CutPosition = 'middle' | 'before-color'
@@ -34,6 +35,7 @@ export type AppSettings = {
     scrollAmount: number
   }
   locale: Locale
+  theme: Theme
 }
 
 export type JobMeta = {

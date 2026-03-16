@@ -180,11 +180,11 @@ export default function SliceDetailPage() {
   }, [sliceIndex, currentJob, goTo, goBack, cropTarget])
 
   if (!currentJob) {
-    return <div className="p-6 text-slate-400">{t.loading}</div>
+    return <div className="p-6 text-tertiary">{t.loading}</div>
   }
 
   if (!file) {
-    return <div className="p-6 text-slate-400">{t.sliceNotFound}</div>
+    return <div className="p-6 text-tertiary">{t.sliceNotFound}</div>
   }
 
   const currentIdx = currentJob.files.findIndex((f) => f.index === sliceIndex)
@@ -192,54 +192,54 @@ export default function SliceDetailPage() {
   const hasNext = currentIdx < currentJob.files.length - 1
 
   return (
-    <div className="h-screen flex flex-col bg-slate-950">
+    <div className="h-screen flex flex-col bg-deep">
       {/* Top bar */}
-      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-4 py-2.5 flex items-center gap-4">
+      <div className="flex-shrink-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-4">
         <button
           onClick={goBack}
-          className="text-slate-400 hover:text-white transition text-sm"
+          className="text-tertiary hover:text-primary transition text-sm"
         >
           &larr; {t.back}
         </button>
 
-        <span className="text-white text-sm font-medium">{currentJob.title}</span>
+        <span className="text-primary text-sm font-medium">{currentJob.title}</span>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         {/* Navigation */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => hasPrev && goTo(currentJob.files[currentIdx - 1].index)}
             disabled={!hasPrev}
-            className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 rounded text-xs transition"
+            className="px-2.5 py-1 bg-elevated hover:bg-hover-elevated disabled:bg-surface disabled:text-faint rounded text-xs transition"
           >
             {t.prev}
           </button>
-          <span className="text-sm text-slate-300 min-w-[80px] text-center">
+          <span className="text-sm text-secondary min-w-[80px] text-center">
             {currentIdx + 1} / {totalSlices}
           </span>
           <button
             onClick={() => hasNext && goTo(currentJob.files[currentIdx + 1].index)}
             disabled={!hasNext}
-            className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-600 rounded text-xs transition"
+            className="px-2.5 py-1 bg-elevated hover:bg-hover-elevated disabled:bg-surface disabled:text-faint rounded text-xs transition"
           >
             {t.next}
           </button>
         </div>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         <button
           onClick={() => navigate(`/preview/${jobId}`)}
-          className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-medium transition"
+          className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs font-medium transition text-white"
         >
           {t.preview}
         </button>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         <div className="flex items-center gap-1.5">
-          <label className="text-xs text-slate-400">{t.scrollSpeed}</label>
+          <label className="text-xs text-tertiary">{t.scrollSpeed}</label>
           <input
             type="range"
             value={scrollAmount}
@@ -249,10 +249,10 @@ export default function SliceDetailPage() {
             step={50}
             className="w-24 accent-blue-500"
           />
-          <span className="text-[10px] text-slate-500 w-8">{scrollAmount}</span>
+          <span className="text-[10px] text-muted w-8">{scrollAmount}</span>
         </div>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         {/* Thumbnail button + folder open */}
         <div className="flex items-center gap-1">
@@ -276,23 +276,23 @@ export default function SliceDetailPage() {
 
             {/* Platform dropdown */}
             {showThumbnailMenu && (
-              <div className="absolute top-full mt-1 right-0 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50 min-w-[220px] py-1">
+              <div className="absolute top-full mt-1 right-0 bg-surface border border-border-subtle rounded-lg shadow-xl z-50 min-w-[220px] py-1">
                 {countries.map((country) => {
                   const platformsWithThumb = country.platforms.filter((p) => p.thumbnail)
                   if (platformsWithThumb.length === 0) return null
                   return (
                     <div key={country.id}>
-                      <div className="px-3 py-1 text-[10px] text-slate-500 uppercase tracking-wider">
+                      <div className="px-3 py-1 text-[10px] text-muted uppercase tracking-wider">
                         {t.countryName(country.id)}
                       </div>
                       {platformsWithThumb.map((p) => (
                         <button
                           key={p.id}
                           onClick={() => handleSelectPlatform(country.id, p, p.thumbnail!)}
-                          className="w-full text-left px-3 py-1.5 hover:bg-slate-700 transition text-sm text-slate-300 flex items-center justify-between"
+                          className="w-full text-left px-3 py-1.5 hover:bg-hover transition text-sm text-secondary flex items-center justify-between"
                         >
                           <span>{t.platformName(p.id)}</span>
-                          <span className="text-[10px] text-slate-500">
+                          <span className="text-[10px] text-muted">
                             {p.thumbnail!.width}x{p.thumbnail!.height}
                           </span>
                         </button>
@@ -319,18 +319,18 @@ export default function SliceDetailPage() {
         <div className="flex-1" />
 
         {/* File info */}
-        <span className="text-xs text-slate-400">{file.name}</span>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-tertiary">{file.name}</span>
+        <span className="text-xs text-muted">
           {file.width} x {file.height}
         </span>
         {file.pageNumber && (
-          <span className="text-xs text-slate-500">{t.page(file.pageNumber)}</span>
+          <span className="text-xs text-muted">{t.page(file.pageNumber)}</span>
         )}
       </div>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Thumbnail strip (left) */}
-        <div className="w-20 flex-shrink-0 bg-slate-900 border-r border-slate-700 overflow-y-auto py-2">
+        <div className="w-20 flex-shrink-0 bg-base border-r border-border overflow-y-auto py-2">
           {currentJob.files.map((f) => (
             <button
               key={f.index}
@@ -338,7 +338,7 @@ export default function SliceDetailPage() {
               className={`mx-1.5 mb-1.5 rounded cursor-pointer border-2 overflow-hidden transition ${
                 f.index === sliceIndex
                   ? 'border-blue-500'
-                  : 'border-transparent hover:border-slate-600'
+                  : 'border-transparent hover:border-border-subtle'
               }`}
             >
               <img
@@ -348,7 +348,7 @@ export default function SliceDetailPage() {
                 loading="lazy"
               />
               <div className="text-center py-0.5">
-                <span className="text-[10px] text-slate-500">{f.index}</span>
+                <span className="text-[10px] text-muted">{f.index}</span>
               </div>
             </button>
           ))}
@@ -390,13 +390,13 @@ export default function SliceDetailPage() {
       <div className="fixed right-6 bottom-6 flex flex-col gap-2">
         <button
           onClick={() => scroll('up')}
-          className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-full text-white text-lg flex items-center justify-center shadow-lg transition"
+          className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-lg flex items-center justify-center shadow-lg transition"
         >
           &uarr;
         </button>
         <button
           onClick={() => scroll('down')}
-          className="w-10 h-10 bg-slate-700 hover:bg-slate-600 rounded-full text-white text-lg flex items-center justify-center shadow-lg transition"
+          className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-lg flex items-center justify-center shadow-lg transition"
         >
           &darr;
         </button>

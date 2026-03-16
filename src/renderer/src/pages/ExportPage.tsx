@@ -104,17 +104,17 @@ export default function ExportPage() {
     }
   }
 
-  if (isLoading) return <div className="p-6 text-slate-400">{t.loading}</div>
-  if (!currentJob || currentJob.id !== jobId) return <div className="p-6 text-slate-400">{t.jobNotFound}</div>
+  if (isLoading) return <div className="p-6 text-tertiary">{t.loading}</div>
+  if (!currentJob || currentJob.id !== jobId) return <div className="p-6 text-tertiary">{t.jobNotFound}</div>
 
   if (currentJob.files.length === 0) {
     return (
       <div className="p-6 max-w-3xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <button onClick={goBack} className="text-slate-400 hover:text-white transition">{t.back}</button>
-          <h1 className="text-2xl font-bold text-white">{t.exportTitle}</h1>
+          <button onClick={goBack} className="text-tertiary hover:text-primary transition">{t.back}</button>
+          <h1 className="text-2xl font-bold text-primary">{t.exportTitle}</h1>
         </div>
-        <p className="text-slate-400">{t.exportNoSlices}</p>
+        <p className="text-tertiary">{t.exportNoSlices}</p>
       </div>
     )
   }
@@ -122,9 +122,9 @@ export default function ExportPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <button onClick={goBack} className="text-slate-400 hover:text-white transition">{t.back}</button>
-        <h1 className="text-2xl font-bold text-white">{t.exportTitle}</h1>
-        <span className="text-sm text-slate-400">{currentJob.title} — {t.slices(currentJob.sliceCount)}</span>
+        <button onClick={goBack} className="text-tertiary hover:text-primary transition">{t.back}</button>
+        <h1 className="text-2xl font-bold text-primary">{t.exportTitle}</h1>
+        <span className="text-sm text-tertiary">{currentJob.title} — {t.slices(currentJob.sliceCount)}</span>
       </div>
 
       {/* Country / Platform Selection */}
@@ -137,13 +137,13 @@ export default function ExportPage() {
           const allExported = selectablePlatforms.length === 0 && country.platforms.length > 0
 
           return (
-            <div key={country.id} className="bg-slate-800 rounded-lg border border-slate-700 overflow-hidden">
+            <div key={country.id} className="bg-surface rounded-lg border border-border overflow-hidden">
               <button
                 onClick={() => toggleCountry(country.id)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-700 transition text-left"
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-hover transition text-left"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-500">{isExpanded ? '▼' : '▶'}</span>
+                  <span className="text-xs text-muted">{isExpanded ? '\u25BC' : '\u25B6'}</span>
                   <input
                     type="checkbox"
                     checked={allSelected}
@@ -153,19 +153,19 @@ export default function ExportPage() {
                     onClick={(e) => e.stopPropagation()}
                     className="rounded"
                   />
-                  <span className="text-white font-medium">{t.countryName(country.id)}</span>
-                  <span className="text-xs text-slate-500">{t.platformCount(country.platforms.length)}</span>
+                  <span className="text-primary font-medium">{t.countryName(country.id)}</span>
+                  <span className="text-xs text-muted">{t.platformCount(country.platforms.length)}</span>
                   {allExported && (
-                    <span className="text-xs text-green-400 bg-green-900/30 px-2 py-0.5 rounded">{t.exportedBadge}</span>
+                    <span className="text-xs text-success-text bg-success-bg px-2 py-0.5 rounded">{t.exportedBadge}</span>
                   )}
                 </div>
               </button>
 
               {isExpanded && (
-                <div className="border-t border-slate-700">
+                <div className="border-t border-border">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-slate-500 text-xs">
+                      <tr className="text-muted text-xs">
                         <th className="px-4 py-2 text-left w-8"></th>
                         <th className="px-4 py-2 text-left">{t.exportPlatform}</th>
                         <th className="px-4 py-2 text-left">{t.exportWidth}</th>
@@ -183,7 +183,7 @@ export default function ExportPage() {
                         return (
                           <tr
                             key={platform.id}
-                            className={`transition ${isExported ? 'opacity-60' : 'hover:bg-slate-700 cursor-pointer'}`}
+                            className={`transition ${isExported ? 'opacity-60' : 'hover:bg-hover cursor-pointer'}`}
                             onClick={() => togglePlatform(country.id, platform.id)}
                           >
                             <td className="px-4 py-2">
@@ -196,15 +196,15 @@ export default function ExportPage() {
                                 className="rounded"
                               />
                             </td>
-                            <td className="px-4 py-2 text-slate-300">{t.platformName(platform.id)}</td>
-                            <td className="px-4 py-2 text-slate-400">{platform.episode.width}px</td>
-                            <td className="px-4 py-2 text-slate-400 uppercase">{platform.episode.format}</td>
-                            <td className="px-4 py-2 text-slate-400">
+                            <td className="px-4 py-2 text-secondary">{t.platformName(platform.id)}</td>
+                            <td className="px-4 py-2 text-tertiary">{platform.episode.width}px</td>
+                            <td className="px-4 py-2 text-tertiary uppercase">{platform.episode.format}</td>
+                            <td className="px-4 py-2 text-tertiary">
                               {platform.episode.maxFileSizeMB ? `${platform.episode.maxFileSizeMB}MB` : '-'}
                             </td>
                             <td className="px-4 py-2">
                               {isExported && (
-                                <span className="text-xs text-green-400 bg-green-900/30 px-2 py-0.5 rounded whitespace-nowrap">
+                                <span className="text-xs text-success-text bg-success-bg px-2 py-0.5 rounded whitespace-nowrap">
                                   {t.exportedAt(new Date(historyEntry.exportedAt).toLocaleDateString())}
                                 </span>
                               )}
@@ -225,7 +225,7 @@ export default function ExportPage() {
       <button
         onClick={handleExport}
         disabled={selectedPlatforms.size === 0 || isExporting}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg font-medium transition mb-4"
+        className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-elevated disabled:text-muted rounded-lg font-medium transition mb-4 text-white"
       >
         {isExporting ? t.exportRunning : selectedPlatforms.size === 0 ? t.exportNoPlatforms : t.exportRun}
       </button>
@@ -233,11 +233,11 @@ export default function ExportPage() {
       {/* Progress */}
       {isExporting && exportProgress && (
         <div className="mb-4">
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-xs text-tertiary mb-1">
             <span>{t[exportProgress.stepKey]} ({exportProgress.current}/{exportProgress.total})</span>
             <span>{exportProgress.percent}%</span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2 overflow-hidden">
+          <div className="w-full bg-elevated rounded-full h-2 overflow-hidden">
             <div
               className="bg-blue-500 h-full rounded-full transition-all duration-300"
               style={{ width: `${exportProgress.percent}%` }}
@@ -248,7 +248,7 @@ export default function ExportPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-900/50 border border-red-700 rounded p-3 mb-4 text-red-300 text-sm">
+        <div className="bg-error-bg border border-error-border rounded p-3 mb-4 text-error-text text-sm">
           {error}
         </div>
       )}
@@ -257,22 +257,22 @@ export default function ExportPage() {
       {exportResult && (
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-3 text-sm">
-            <span className="text-green-400 font-medium">{t.exportSuccess}</span>
-            <span className="text-slate-400">{t.exportFiles(exportResult.totalFiles)}</span>
+            <span className="text-success-text font-medium">{t.exportSuccess}</span>
+            <span className="text-tertiary">{t.exportFiles(exportResult.totalFiles)}</span>
             {exportResult.totalWarnings > 0 && (
-              <span className="text-amber-400">{t.exportWarnings(exportResult.totalWarnings)}</span>
+              <span className="text-warning-text">{t.exportWarnings(exportResult.totalWarnings)}</span>
             )}
           </div>
 
           {exportResult.platforms.map((pr) => (
-            <div key={pr.platformId} className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+            <div key={pr.platformId} className="bg-surface rounded-lg border border-border p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium">{t.platformName(pr.platformId)}</span>
+                <span className="text-primary font-medium">{t.platformName(pr.platformId)}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-slate-400">{t.exportFiles(pr.fileCount)}</span>
+                  <span className="text-xs text-tertiary">{t.exportFiles(pr.fileCount)}</span>
                   <button
                     onClick={() => window.api.openPath(pr.outputDir)}
-                    className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition"
+                    className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
                   >
                     {t.exportOpenFolder}
                   </button>
@@ -282,7 +282,7 @@ export default function ExportPage() {
               {pr.warnings.length > 0 && (
                 <div className="space-y-1 mt-2">
                   {pr.warnings.map((w, i) => (
-                    <div key={i} className="text-xs text-amber-400 bg-amber-900/20 rounded px-2 py-1">
+                    <div key={i} className="text-xs text-warning-text bg-warning-bg rounded px-2 py-1">
                       {w.file}: {w.message}
                     </div>
                   ))}
@@ -296,22 +296,22 @@ export default function ExportPage() {
       {/* Export History (persisted) */}
       {exportHistory.size > 0 && (
         <div className="space-y-3">
-          <h2 className="text-sm font-medium text-slate-400">{t.exportedBadge}</h2>
+          <h2 className="text-sm font-medium text-tertiary">{t.exportedBadge}</h2>
           {Array.from(exportHistory.values())
             .filter((entry) => !exportResult?.platforms.some((pr) => pr.countryId === entry.countryId && pr.platformId === entry.platformId))
             .map((entry) => (
-            <div key={historyKey(entry.countryId, entry.platformId)} className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+            <div key={historyKey(entry.countryId, entry.platformId)} className="bg-surface rounded-lg border border-border p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-white font-medium">{t.platformName(entry.platformId)}</span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-primary font-medium">{t.platformName(entry.platformId)}</span>
+                  <span className="text-xs text-muted">
                     {t.exportedAt(new Date(entry.exportedAt).toLocaleDateString())}
                   </span>
-                  <span className="text-xs text-slate-400">{t.exportFiles(entry.fileCount)}</span>
+                  <span className="text-xs text-tertiary">{t.exportFiles(entry.fileCount)}</span>
                 </div>
                 <button
                   onClick={() => window.api.openPath(entry.outputDir)}
-                  className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition"
+                  className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
                 >
                   {t.exportOpenFolder}
                 </button>

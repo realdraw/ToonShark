@@ -11,6 +11,24 @@ import { useSettingsStore } from '../stores/settingsStore'
 import { I18nContext, getTranslations } from '../i18n'
 import { ToastContainer } from '../components/ToastContainer'
 
+function useTheme(theme: 'light' | 'dark' | 'system') {
+  useEffect(() => {
+    const apply = (isDark: boolean) => {
+      document.documentElement.classList.toggle('dark', isDark)
+    }
+
+    if (theme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)')
+      apply(mq.matches)
+      const handler = (e: MediaQueryListEvent) => apply(e.matches)
+      mq.addEventListener('change', handler)
+      return () => mq.removeEventListener('change', handler)
+    }
+
+    apply(theme === 'dark')
+  }, [theme])
+}
+
 export default function App() {
   const { settings, loadSettings } = useSettingsStore()
 
@@ -19,11 +37,14 @@ export default function App() {
   }, [loadSettings])
 
   const locale = settings?.locale ?? 'en'
+  const theme = settings?.theme ?? 'dark'
   const t = getTranslations(locale)
+
+  useTheme(theme)
 
   return (
     <I18nContext.Provider value={t}>
-      <div className="min-h-screen bg-slate-900">
+      <div className="min-h-screen bg-base">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/workspace" element={<WorkspacePage />} />

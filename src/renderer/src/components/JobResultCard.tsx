@@ -4,7 +4,7 @@ import { toLocalFileUrl } from '@shared/utils'
 
 function OptionTag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="px-1.5 py-0.5 bg-slate-700 rounded text-[10px] text-slate-300">
+    <span className="px-1.5 py-0.5 bg-elevated rounded text-[10px] text-secondary">
       {children}
     </span>
   )
@@ -53,49 +53,49 @@ export function JobResultCard({
   t: TranslationKeys
 }) {
   return (
-    <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+    <div className="bg-surface rounded-lg border border-border p-4">
       <div className="flex items-center justify-between mb-1">
         <div className="text-sm">
-          <span className="text-white font-medium">
+          <span className="text-primary font-medium">
             {new Date(job.createdAt).toLocaleTimeString()}
           </span>
-          <span className="text-slate-400 ml-3">{t.slices(job.sliceCount)}</span>
-          <span className="text-slate-400 ml-3">{job.pageCount} {t.pages}</span>
+          <span className="text-tertiary ml-3">{t.slices(job.sliceCount)}</span>
+          <span className="text-tertiary ml-3">{job.pageCount} {t.pages}</span>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => navigate(`/preview/${job.id}`)}
-            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs transition"
+            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 rounded text-xs transition text-white"
           >
             {t.preview}
           </button>
           <button
             onClick={() => window.api.openSourcePdf(job.id).catch(() => {})}
-            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition"
+            className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
           >
             {t.sourcePdf}
           </button>
           <button
             onClick={() => window.api.openPath(job.versionPath).catch(() => {})}
-            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition"
+            className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
           >
             {t.folder}
           </button>
           <button
             onClick={() => navigate(`/job/${job.id}`)}
-            className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs transition"
+            className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
           >
             {t.detail}
           </button>
           <button
             onClick={() => navigate(`/job/${job.id}/export`)}
-            className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs transition"
+            className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs transition text-white"
           >
             {t.exportButton}
           </button>
           <button
             onClick={() => onDelete(job.id)}
-            className="px-3 py-1 bg-red-900/50 hover:bg-red-700 text-red-300 hover:text-white rounded text-xs transition"
+            className="px-3 py-1 bg-error-bg hover:bg-red-700 text-error-text hover:text-white rounded text-xs transition"
           >
             {t.delete}
           </button>
@@ -109,7 +109,7 @@ export function JobResultCard({
           <button
             key={file.index}
             onClick={() => navigate(`/job/${job.id}/slice?index=${file.index}&from=workspace`)}
-            className="flex-shrink-0 w-16 bg-slate-700 rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
+            className="flex-shrink-0 w-16 bg-elevated rounded overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500 transition"
           >
             <img
               src={toLocalFileUrl(file.thumbnailPath ?? file.path)}
@@ -118,14 +118,14 @@ export function JobResultCard({
               loading="lazy"
             />
             <div className="text-center py-0.5">
-              <span className="text-[10px] text-slate-500">{file.index}</span>
+              <span className="text-[10px] text-muted">{file.index}</span>
             </div>
           </button>
         ))}
         {job.files.length > 12 && (
           <button
             onClick={() => navigate(`/job/${job.id}`)}
-            className="flex-shrink-0 w-16 bg-slate-700 rounded flex items-center justify-center text-xs text-slate-400 cursor-pointer hover:bg-slate-600 transition"
+            className="flex-shrink-0 w-16 bg-elevated rounded flex items-center justify-center text-xs text-tertiary cursor-pointer hover:bg-hover-elevated transition"
           >
             +{job.files.length - 12}
           </button>

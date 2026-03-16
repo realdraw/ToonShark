@@ -53,35 +53,35 @@ export default function PreviewPage() {
   }
 
   if (error || loadError) {
-      return <div className="p-6 text-red-400">{error || loadError}</div>
+      return <div className="p-6 text-error-text">{error || loadError}</div>
   }
 
   if (!currentJob || !isReady || currentJob.id !== jobId) {
-      return <div className="p-6 text-slate-400">{t.loading}</div>
+      return <div className="p-6 text-tertiary">{t.loading}</div>
   }
 
   return (
-    <div className="h-screen flex flex-col bg-slate-950">
+    <div className="h-screen flex flex-col bg-deep">
       {/* Top bar */}
-      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-4 py-2.5 flex items-center gap-4">
+      <div className="flex-shrink-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-4">
         <button
           onClick={goBack}
-          className="text-slate-400 hover:text-white transition text-sm"
+          className="text-tertiary hover:text-primary transition text-sm"
         >
             &larr; {t.back}
         </button>
 
-        <span className="text-white text-sm font-medium truncate">
+        <span className="text-primary text-sm font-medium truncate">
           {currentJob.title}
         </span>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         {/* Device selector */}
         <select
           value={activeDevice?.id ?? ''}
           onChange={(e) => handleDeviceChange(e.target.value)}
-          className="px-2 py-1 bg-slate-900 border border-slate-600 rounded text-xs text-white"
+          className="px-2 py-1 bg-input border border-border-subtle rounded text-xs text-primary"
         >
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
@@ -92,7 +92,7 @@ export default function PreviewPage() {
 
         {/* Custom size */}
         <div className="flex items-center gap-1">
-            <label className="text-xs text-slate-400">{t.width}</label>
+            <label className="text-xs text-tertiary">{t.width}</label>
           <input
             type="number"
             value={customWidth}
@@ -101,9 +101,9 @@ export default function PreviewPage() {
               setActiveDevice(devices.find((d) => d.id === 'custom') ?? activeDevice)
             }}
             min={1}
-            className="w-16 px-1.5 py-1 bg-slate-900 border border-slate-600 rounded text-xs text-white"
+            className="w-16 px-1.5 py-1 bg-input border border-border-subtle rounded text-xs text-primary"
           />
-            <label className="text-xs text-slate-400 ml-1">{t.height}</label>
+            <label className="text-xs text-tertiary ml-1">{t.height}</label>
           <input
             type="number"
             value={customHeight}
@@ -112,27 +112,27 @@ export default function PreviewPage() {
               setActiveDevice(devices.find((d) => d.id === 'custom') ?? activeDevice)
             }}
             min={1}
-            className="w-16 px-1.5 py-1 bg-slate-900 border border-slate-600 rounded text-xs text-white"
+            className="w-16 px-1.5 py-1 bg-input border border-border-subtle rounded text-xs text-primary"
           />
         </div>
 
-        <div className="h-4 w-px bg-slate-600" />
+        <div className="h-4 w-px bg-divider" />
 
         {/* Gap */}
         <div className="flex items-center gap-1">
-            <label className="text-xs text-slate-400">{t.gap}</label>
+            <label className="text-xs text-tertiary">{t.gap}</label>
           <input
             type="number"
             value={imageGap}
             onChange={(e) => setImageGap(Number(e.target.value))}
             min={0}
-            className="w-14 px-1.5 py-1 bg-slate-900 border border-slate-600 rounded text-xs text-white"
+            className="w-14 px-1.5 py-1 bg-input border border-border-subtle rounded text-xs text-primary"
           />
         </div>
 
         <div className="flex-1" />
 
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-muted">
           {t.slices(currentJob.sliceCount)}
         </span>
       </div>
@@ -140,7 +140,7 @@ export default function PreviewPage() {
       {/* Preview area - fixed center, no stretch */}
       <div className="flex-1 overflow-hidden flex items-center justify-center">
         <div
-          className="rounded-2xl border-2 border-slate-600 overflow-hidden shadow-2xl"
+          className="rounded-2xl border-2 border-border-subtle overflow-hidden shadow-2xl"
           style={{
             width: customWidth + 4,
             height: customHeight + 4,

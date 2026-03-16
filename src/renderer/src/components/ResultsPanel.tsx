@@ -19,7 +19,7 @@ export function ResultsPanel(props: ResultsPanelProps) {
   if (activeJobs.length === 0) {
     return (
       <div className="flex-1 overflow-y-auto p-6">
-        <div className="text-center py-20 text-slate-500">
+        <div className="text-center py-20 text-muted">
           <p className="text-lg mb-2">{t.noResultsTitle}</p>
           <p className="text-sm">{t.noResultsDesc}</p>
         </div>
@@ -29,12 +29,12 @@ export function ResultsPanel(props: ResultsPanelProps) {
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
-      <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-        <span className="bg-slate-700 px-2 py-0.5 rounded text-xs">PDF</span>
+      <h3 className="text-sm font-semibold text-secondary mb-3 flex items-center gap-2">
+        <span className="bg-elevated px-2 py-0.5 rounded text-xs">PDF</span>
         {activePdfName}
-        <span className="text-slate-500 text-xs">{t.runCount(activeJobs.length)}</span>
+        <span className="text-muted text-xs">{t.runCount(activeJobs.length)}</span>
         {activePdfStorage && (
-          <span className="text-slate-500 text-xs">· {formatBytes(activePdfStorage.size)}</span>
+          <span className="text-muted text-xs">· {formatBytes(activePdfStorage.size)}</span>
         )}
       </h3>
 

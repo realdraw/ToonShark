@@ -73,8 +73,10 @@ describe('WorkspacePage', () => {
         naming: { defaultPrefix: 'preset_prefix', filenamePadding: 4 },
         autoSlice: { whiteThreshold: 255, minWhiteRun: 20, minSliceHeight: 250, cutPosition: 'middle' },
         pdfScale: 4,
+        export: { jpgQuality: 90 },
         preview: { defaultDeviceId: 'iphone_16_pro', imageGap: 0, scrollAmount: 300 },
-        locale: 'en'
+        locale: 'en',
+        theme: 'dark'
       },
       isLoading: false,
       error: null
@@ -104,8 +106,10 @@ describe('WorkspacePage', () => {
           naming: { defaultPrefix: 'preset_prefix', filenamePadding: 4 },
           autoSlice: { whiteThreshold: 255, minWhiteRun: 20, minSliceHeight: 250, cutPosition: 'middle' },
           pdfScale: 4,
+          export: { jpgQuality: 90 },
           preview: { defaultDeviceId: 'iphone_16_pro', imageGap: 0, scrollAmount: 300 },
-        locale: 'en'
+        locale: 'en',
+        theme: 'dark'
       })),
         getRecentJobs: vi.fn(async () => []),
         runSliceJob: vi.fn(async () => ({

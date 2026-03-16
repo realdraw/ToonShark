@@ -15,8 +15,10 @@ const FAKE_SETTINGS: AppSettings = {
     cutPosition: 'before-color'
   },
   pdfScale: 2.0,
+  export: { jpgQuality: 90 },
   preview: { defaultDeviceId: 'iphone_16', imageGap: 0, scrollAmount: 300 },
-  locale: 'en'
+  locale: 'en',
+  theme: 'dark'
 }
 
 const PDF_A = '/path/to/a.pdf'

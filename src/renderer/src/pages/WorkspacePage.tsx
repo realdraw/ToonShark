@@ -151,7 +151,7 @@ export default function WorkspacePage() {
     >
       {isDragging && <DropOverlay />}
       {/* Top: PDF Tabs */}
-      <div className="flex-shrink-0 bg-slate-800 border-b border-slate-700 flex items-center">
+      <div className="flex-shrink-0 bg-surface border-b border-border flex items-center">
         <div className="flex overflow-x-auto flex-1">
           {pdfList.map((pdf) => (
             <button
@@ -159,8 +159,8 @@ export default function WorkspacePage() {
               onClick={() => setActivePdf(pdf.path)}
               className={`group flex items-center gap-2 px-4 py-2.5 text-sm cursor-pointer border-b-2 transition whitespace-nowrap ${
                 pdf.path === activePdfPath
-                  ? 'border-blue-500 text-white bg-slate-900'
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                  ? 'border-blue-500 text-primary bg-base'
+                  : 'border-transparent text-tertiary hover:text-secondary hover:bg-hover'
               }`}
             >
               {isRunning && runningPdfPath === pdf.path && (
@@ -170,7 +170,7 @@ export default function WorkspacePage() {
               <button
                 type="button"
                 onClick={(e) => handleClosePdf(pdf.path, e)}
-                className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-white transition ml-1 text-xs bg-transparent border-none p-0 cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-muted hover:text-primary transition ml-1 text-xs bg-transparent border-none p-0 cursor-pointer"
               >
                 x
               </button>
@@ -179,13 +179,13 @@ export default function WorkspacePage() {
         </div>
         <button
           onClick={addPdf}
-          className="flex-shrink-0 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700 transition text-sm border-l border-slate-700"
+          className="flex-shrink-0 px-4 py-2.5 text-tertiary hover:text-primary hover:bg-hover transition text-sm border-l border-border"
         >
           {t.addPdf}
         </button>
         <button
           onClick={() => navigate('/')}
-          className="flex-shrink-0 px-4 py-2.5 text-slate-400 hover:text-white hover:bg-slate-700 transition text-sm border-l border-slate-700"
+          className="flex-shrink-0 px-4 py-2.5 text-tertiary hover:text-primary hover:bg-hover transition text-sm border-l border-border"
         >
           {t.home}
         </button>

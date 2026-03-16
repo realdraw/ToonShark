@@ -199,7 +199,7 @@ export default function CropOverlay({ aspectRatio, imageNaturalWidth, imageNatur
         ))}
 
         {/* Dimension label */}
-        <div className="absolute -top-6 left-0 text-[10px] text-blue-300 bg-slate-900/80 px-1 rounded whitespace-nowrap">
+        <div className="absolute -top-6 left-0 text-[10px] text-blue-300 bg-base/80 px-1 rounded whitespace-nowrap">
           {Math.round(crop.width * scaleX)} x {Math.round(crop.height * scaleY)}
         </div>
       </div>
@@ -221,7 +221,7 @@ export default function CropOverlay({ aspectRatio, imageNaturalWidth, imageNatur
         </button>
         <button
           onClick={onCancel}
-          className="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-slate-300 transition"
+          className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs text-secondary transition"
         >
           {t.thumbnailCancel}
         </button>

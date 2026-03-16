@@ -106,6 +106,11 @@ export interface TranslationKeys {
   languageSection: string
   english: string
   korean: string
+  themeSection: string
+  themeLabel: string
+  themeLight: string
+  themeDark: string
+  themeSystem: string
 
   // Storage Info
   totalUsage: string
@@ -303,6 +308,11 @@ const en: TranslationKeys = {
   languageSection: 'Language',
   english: 'English',
   korean: '한국어',
+  themeSection: 'Theme',
+  themeLabel: 'Appearance',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  themeSystem: 'System',
 
   // Storage Info
   totalUsage: 'Total',

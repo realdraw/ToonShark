@@ -108,6 +108,11 @@ const ko: TranslationKeys = {
   languageSection: '언어',
   english: 'English',
   korean: '한국어',
+  themeSection: '테마',
+  themeLabel: '외관',
+  themeLight: '라이트',
+  themeDark: '다크',
+  themeSystem: '시스템',
 
   // Storage Info
   totalUsage: '전체',

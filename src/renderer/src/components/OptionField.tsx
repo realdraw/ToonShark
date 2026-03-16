@@ -28,17 +28,17 @@ export function OptionField({
   return (
     <div className={compact ? '' : 'mb-4'} ref={ref}>
       <div className="flex items-center gap-1 mb-1">
-        <label className="block text-xs text-slate-400">{label}</label>
+        <label className="block text-xs text-tertiary">{label}</label>
         <button
           type="button"
           onClick={() => setShowDesc(!showDesc)}
-          className="w-3.5 h-3.5 rounded-full bg-slate-600 hover:bg-slate-500 text-[9px] text-slate-300 flex items-center justify-center flex-shrink-0 transition"
+          className="w-3.5 h-3.5 rounded-full bg-divider hover:bg-muted text-[9px] text-secondary flex items-center justify-center flex-shrink-0 transition"
         >
           ?
         </button>
       </div>
       {showDesc && (
-        <p className="text-[11px] text-slate-400 bg-slate-700/60 rounded px-2 py-1.5 mb-1.5 leading-relaxed">
+        <p className="text-[11px] text-tertiary bg-surface-dim rounded px-2 py-1.5 mb-1.5 leading-relaxed">
           {desc}
         </p>
       )}
