@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import {MemoryRouter} from 'react-router-dom'
 import HomePage from './HomePage'
-import { I18nContext } from '../i18n'
+import {I18nContext} from '../i18n'
 import en from '../i18n/en'
-import { useJobStore } from '../stores/jobStore'
-import type { StorageInfo } from '@shared/types'
+import {useJobStore} from '../stores/jobStore'
+import type {StorageInfo} from '@shared/types'
 
 const navigate = vi.fn()
 const deleteAll = vi.fn()

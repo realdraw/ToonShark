@@ -1,4 +1,4 @@
-import { fixturePdfPath, mockNextOpenDialogPath, test, expect } from './fixtures'
+import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 
 /**
  * 헬퍼: PDF를 열고, 슬라이스 실행 후 작업 상세 페이지로 이동

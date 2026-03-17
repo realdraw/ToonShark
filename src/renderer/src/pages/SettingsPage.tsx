@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useSettingsStore } from '../stores/settingsStore'
-import { useTranslation } from '../i18n'
-import type { AppSettings, CutPosition, DevicePreset, Locale, Theme } from '@shared/types'
-import { PDF_SCALE_MIN, PDF_SCALE_MAX } from '@shared/constants'
-import { useToastStore } from '../stores/toastStore'
-import { DevicePresetsSection } from '../components/settings/DevicePresetsSection'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {useSettingsStore} from '../stores/settingsStore'
+import {useTranslation} from '../i18n'
+import type {AppSettings, CutPosition, DevicePreset, Locale, Theme} from '@shared/types'
+import {PDF_SCALE_MAX, PDF_SCALE_MIN} from '@shared/constants'
+import {useToastStore} from '../stores/toastStore'
+import {DevicePresetsSection} from '../components/settings/DevicePresetsSection'
 
 export default function SettingsPage() {
   const navigate = useNavigate()

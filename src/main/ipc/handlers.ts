@@ -1,15 +1,22 @@
-import { ipcMain, dialog, shell, BrowserWindow } from 'electron'
-import { normalize, resolve, relative, sep } from 'path'
-import type { SettingsService } from '../services/settings.service'
-import type { PreviewService } from '../services/preview.service'
-import type { JobRepository } from '../services/job-repository'
-import type { JobExecutionService } from '../services/job-execution.service'
-import type { ExportService } from '../services/export.service'
-import type { PdfService } from '../services/pdf.service'
-import type { Logger } from '../services/logger.service'
-import type { RunSliceJobPayload, ExportJobPayload, JobProgress, AppSettings, DevicePreset, CaptureThumbnailPayload } from '@shared/types'
-import { DEFAULT_SETTINGS, PDF_SCALE_MIN, PDF_SCALE_MAX } from '@shared/constants'
-import { toErrorMessage } from '@shared/utils'
+import {BrowserWindow, dialog, ipcMain, shell} from 'electron'
+import {normalize, relative, resolve, sep} from 'path'
+import type {SettingsService} from '../services/settings.service'
+import type {PreviewService} from '../services/preview.service'
+import type {JobRepository} from '../services/job-repository'
+import type {JobExecutionService} from '../services/job-execution.service'
+import type {ExportService} from '../services/export.service'
+import type {PdfService} from '../services/pdf.service'
+import type {Logger} from '../services/logger.service'
+import type {
+  AppSettings,
+  CaptureThumbnailPayload,
+  DevicePreset,
+  ExportJobPayload,
+  JobProgress,
+  RunSliceJobPayload
+} from '@shared/types'
+import {DEFAULT_SETTINGS, PDF_SCALE_MAX, PDF_SCALE_MIN} from '@shared/constants'
+import {toErrorMessage} from '@shared/utils'
 
 type Services = {
   settingsService: SettingsService

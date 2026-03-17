@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import {expect, test} from './fixtures'
 
 /** 설정 페이지로 이동 — 영어/한국어 모두 대응 */
 async function goToSettings(page: import('playwright').Page) {

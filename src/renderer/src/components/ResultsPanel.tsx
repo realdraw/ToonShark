@@ -1,8 +1,8 @@
-import type { NavigateFunction } from 'react-router-dom'
-import type { JobMeta, StoragePdfInfo } from '@shared/types'
-import type { TranslationKeys } from '../i18n/en'
-import { JobResultCard } from './JobResultCard'
-import { formatBytes } from '@shared/utils'
+import type {NavigateFunction} from 'react-router-dom'
+import type {JobMeta, StoragePdfInfo} from '@shared/types'
+import type {TranslationKeys} from '../i18n/en'
+import {JobResultCard} from './JobResultCard'
+import {formatBytes} from '@shared/utils'
 
 type ResultsPanelProps = {
   activeJobs: JobMeta[]

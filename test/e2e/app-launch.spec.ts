@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import {expect, test} from './fixtures'
 
 test('launches the app to the home screen', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'ToonShark' })).toBeVisible()

@@ -1,11 +1,24 @@
 import sharp from 'sharp'
-import { join } from 'path'
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'fs'
-import type { Platform, JobMeta, ExportWarning, ExportPlatformResult, ExportResult, ExportJobPayload, ExportHistoryEntry, ExportHistory, JobProgress, CaptureThumbnailPayload, CaptureThumbnailResult, ThumbnailSpec } from '@shared/types'
-import { sanitizeFolderId } from '@shared/utils'
-import type { JobRepository } from './job-repository'
-import type { Logger } from './logger.service'
-import type { SettingsService } from './settings.service'
+import {join} from 'path'
+import {existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync} from 'fs'
+import type {
+  CaptureThumbnailPayload,
+  CaptureThumbnailResult,
+  ExportHistory,
+  ExportHistoryEntry,
+  ExportJobPayload,
+  ExportPlatformResult,
+  ExportResult,
+  ExportWarning,
+  JobMeta,
+  JobProgress,
+  Platform,
+  ThumbnailSpec
+} from '@shared/types'
+import {sanitizeFolderId} from '@shared/utils'
+import type {JobRepository} from './job-repository'
+import type {Logger} from './logger.service'
+import type {SettingsService} from './settings.service'
 
 export class ExportService {
   constructor(

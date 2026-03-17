@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { SliceService } from './slice.service'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {SliceService} from './slice.service'
 import sharp from 'sharp'
-import { mkdirSync, rmSync, existsSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
+import {existsSync, mkdirSync, rmSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
 
 // Helper: create a solid color image buffer
 async function createImage(width: number, height: number, color = { r: 255, g: 255, b: 255 }): Promise<Buffer> {

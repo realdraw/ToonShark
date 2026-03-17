@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { JobRepository } from './job-repository'
-import { FileService } from './file.service'
-import { mkdirSync, rmSync, writeFileSync, existsSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
-import type { JobMeta } from '@shared/types'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {JobRepository} from './job-repository'
+import {FileService} from './file.service'
+import {existsSync, mkdirSync, rmSync, writeFileSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
+import type {JobMeta} from '@shared/types'
 
 function createTestJob(
   baseDir: string,

@@ -1,7 +1,7 @@
-import { create } from 'zustand'
-import type { JobMeta, RunSliceJobPayload, ExportJobPayload, ExportResult, JobProgress } from '@shared/types'
-import { extractPdfName, toErrorMessage } from '@shared/utils'
-import { useWorkspaceStore } from './workspaceStore'
+import {create} from 'zustand'
+import type {ExportJobPayload, ExportResult, JobMeta, JobProgress, RunSliceJobPayload} from '@shared/types'
+import {extractPdfName, toErrorMessage} from '@shared/utils'
+import {useWorkspaceStore} from './workspaceStore'
 
 type PdfEntry = {
   path: string

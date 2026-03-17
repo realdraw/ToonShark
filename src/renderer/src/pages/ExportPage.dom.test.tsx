@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import {MemoryRouter} from 'react-router-dom'
 import ExportPage from './ExportPage'
-import { I18nContext } from '../i18n'
+import {I18nContext} from '../i18n'
 import en from '../i18n/en'
-import { useJobStore } from '../stores/jobStore'
-import { useToastStore } from '../stores/toastStore'
+import {useJobStore} from '../stores/jobStore'
+import {useToastStore} from '../stores/toastStore'
 
 const goBack = vi.fn()
 let exportHistoryEntries: Array<{ countryId: string, platformId: string, exportedAt: string, outputDir: string, fileCount: number }> = []

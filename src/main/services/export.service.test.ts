@@ -1,13 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { ExportService } from './export.service'
-import { SettingsService } from './settings.service'
-import { Logger } from './logger.service'
-import { mkdirSync, rmSync, existsSync, writeFileSync, readdirSync, readFileSync, statSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {ExportService} from './export.service'
+import {SettingsService} from './settings.service'
+import {Logger} from './logger.service'
+import {existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync} from 'fs'
+import {join, resolve} from 'path'
+import {tmpdir} from 'os'
 import sharp from 'sharp'
-import { resolve } from 'path'
-import type { JobMeta, Platform, JobProgress, ExportPlatformEntry } from '@shared/types'
+import type {ExportPlatformEntry, JobMeta, JobProgress, Platform} from '@shared/types'
 
 const DEFAULTS_DIR = resolve(__dirname, '..', '..', '..', 'resources', 'defaults')
 

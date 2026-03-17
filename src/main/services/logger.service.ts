@@ -1,6 +1,6 @@
-import { mkdirSync } from 'fs'
-import { appendFile } from 'fs/promises'
-import { join } from 'path'
+import {mkdirSync} from 'fs'
+import {appendFile} from 'fs/promises'
+import {join} from 'path'
 
 type LogLevel = 'INFO' | 'WARN' | 'ERROR'
 

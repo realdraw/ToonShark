@@ -1,5 +1,5 @@
-import type { DevicePreset } from '@shared/types'
-import type { TranslationKeys } from '../../i18n/en'
+import type {DevicePreset} from '@shared/types'
+import type {TranslationKeys} from '../../i18n/en'
 
 type Props = {
   devices: DevicePreset[]

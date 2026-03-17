@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
-import { OptionField } from './OptionField'
-import type { CutPosition, JobProgress } from '@shared/types'
-import type { PdfOptions } from '../stores/workspaceStore'
-import { PDF_SCALE_MIN, PDF_SCALE_MAX } from '@shared/constants'
-import type { TranslationKeys } from '../i18n/en'
+import {useEffect, useState} from 'react'
+import {OptionField} from './OptionField'
+import type {CutPosition, JobProgress} from '@shared/types'
+import type {PdfOptions} from '../stores/workspaceStore'
+import {PDF_SCALE_MAX, PDF_SCALE_MIN} from '@shared/constants'
+import type {TranslationKeys} from '../i18n/en'
 
 type OptionPanelProps = {
   pdfPath: string | null

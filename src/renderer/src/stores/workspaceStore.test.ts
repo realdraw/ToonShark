@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useWorkspaceStore } from './workspaceStore'
-import type { PdfOptions } from './workspaceStore'
-import { DEFAULT_AUTO_SLICE } from '@shared/types'
-import type { AppSettings } from '@shared/types'
+import {beforeEach, describe, expect, it} from 'vitest'
+import type {PdfOptions} from './workspaceStore'
+import {useWorkspaceStore} from './workspaceStore'
+import type {AppSettings} from '@shared/types'
+import {DEFAULT_AUTO_SLICE} from '@shared/types'
 
 const FAKE_SETTINGS: AppSettings = {
   baseDir: '/tmp/test',

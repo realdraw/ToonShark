@@ -1,7 +1,7 @@
-import { writeFileSync } from 'fs'
-import { join } from 'path'
-import type { DevicePreset, SliceFileInfo } from '@shared/types'
-import { PREVIEW_TEMPLATE } from './preview.template'
+import {writeFileSync} from 'fs'
+import {join} from 'path'
+import type {DevicePreset, SliceFileInfo} from '@shared/types'
+import {PREVIEW_TEMPLATE} from './preview.template'
 
 type PreviewOptions = {
   imageGap: number

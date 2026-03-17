@@ -1,4 +1,4 @@
-import { launchElectronApp, test, expect } from './fixtures'
+import {expect, launchElectronApp, test} from './fixtures'
 
 test('persists baseDir across app relaunches', async ({ electronApp, page, testBaseDir, testHomeDir }) => {
   await page.evaluate(async (baseDir) => {

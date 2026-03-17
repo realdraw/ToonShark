@@ -1,6 +1,6 @@
-import type { JobMeta } from '@shared/types'
-import type { TranslationKeys } from '../i18n/en'
-import { toLocalFileUrl } from '@shared/utils'
+import type {JobMeta} from '@shared/types'
+import type {TranslationKeys} from '../i18n/en'
+import {toLocalFileUrl} from '@shared/utils'
 
 function OptionTag({ children }: { children: React.ReactNode }) {
   return (

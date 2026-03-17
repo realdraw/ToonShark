@@ -1,5 +1,18 @@
-import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import type { AppSettings, RunSliceJobPayload, ExportJobPayload, ExportResult, ExportHistoryEntry, JobMeta, DevicePreset, Country, JobProgress, StorageInfo, CaptureThumbnailPayload, CaptureThumbnailResult } from '@shared/types'
+import {contextBridge, ipcRenderer, webUtils} from 'electron'
+import type {
+  AppSettings,
+  CaptureThumbnailPayload,
+  CaptureThumbnailResult,
+  Country,
+  DevicePreset,
+  ExportHistoryEntry,
+  ExportJobPayload,
+  ExportResult,
+  JobMeta,
+  JobProgress,
+  RunSliceJobPayload,
+  StorageInfo
+} from '@shared/types'
 
 
 const api = {

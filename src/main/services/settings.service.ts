@@ -1,10 +1,10 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
-import { join } from 'path'
-import { homedir } from 'os'
-import type { AppSettings, DevicePreset, Country } from '@shared/types'
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs'
+import {join} from 'path'
+import {homedir} from 'os'
+import type {AppSettings, Country, DevicePreset} from '@shared/types'
 
-import { DEFAULT_SETTINGS } from '@shared/constants'
-import type { Logger } from './logger.service'
+import {DEFAULT_SETTINGS} from '@shared/constants'
+import type {Logger} from './logger.service'
 
 const DEFAULT_BASE_DIR = join(process.env.TOONSHARK_HOME || homedir(), 'toonshark_data')
 function resolveDefaultsDir(): string {

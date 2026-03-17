@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
+import {describe, expect, it} from 'vitest'
 import postcss from 'postcss'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
+import {readFileSync} from 'fs'
+import {resolve} from 'path'
 
 describe('Tailwind CSS build', () => {
   it('should compile index.css through PostCSS without errors', async () => {

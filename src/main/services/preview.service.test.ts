@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { PreviewService } from './preview.service'
-import { mkdirSync, rmSync, existsSync, readFileSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
-import type { DevicePreset, SliceFileInfo } from '@shared/types'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {PreviewService} from './preview.service'
+import {existsSync, mkdirSync, readFileSync, rmSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
+import type {DevicePreset, SliceFileInfo} from '@shared/types'
 
 describe('PreviewService', () => {
   let service: PreviewService

@@ -1,10 +1,10 @@
-import { existsSync } from 'fs'
-import { readFile, writeFile, readdir, stat, rm } from 'fs/promises'
-import { join, basename, dirname } from 'path'
-import type { JobMeta, StorageInfo, StoragePdfInfo, StorageJobInfo } from '@shared/types'
-import { toErrorMessage } from '@shared/utils'
-import type { FileService } from './file.service'
-import type { Logger } from './logger.service'
+import {existsSync} from 'fs'
+import {readdir, readFile, rm, stat, writeFile} from 'fs/promises'
+import {basename, dirname, join} from 'path'
+import type {JobMeta, StorageInfo, StorageJobInfo, StoragePdfInfo} from '@shared/types'
+import {toErrorMessage} from '@shared/utils'
+import type {FileService} from './file.service'
+import type {Logger} from './logger.service'
 
 export class JobRepository {
   private baseDir: string

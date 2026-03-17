@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { afterEach, describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import {afterEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
 import CropOverlay from './CropOverlay'
-import { I18nContext } from '../i18n'
+import {I18nContext} from '../i18n'
 import en from '../i18n/en'
 
 function renderCrop(props: Partial<React.ComponentProps<typeof CropOverlay>> = {}) {

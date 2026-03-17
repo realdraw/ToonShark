@@ -1,5 +1,5 @@
-import { useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import {useCallback} from 'react'
+import {useLocation, useNavigate} from 'react-router-dom'
 
 export function useGoBack(fallbackPath: string) {
   const navigate = useNavigate()

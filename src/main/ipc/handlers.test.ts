@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AppSettings, DevicePreset, JobMeta, JobProgress, RunSliceJobPayload } from '@shared/types'
-import { DEFAULT_SETTINGS } from '@shared/constants'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
+import type {AppSettings, DevicePreset, JobMeta, JobProgress, RunSliceJobPayload} from '@shared/types'
+import {DEFAULT_SETTINGS} from '@shared/constants'
 
 const handleMap = new Map<string, Function>()
 const onMap = new Map<string, Function>()

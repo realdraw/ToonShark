@@ -1,6 +1,6 @@
-import { useCallback } from 'react'
-import { useJobStore } from '../stores/jobStore'
-import type { TranslationKeys } from '../i18n/en'
+import {useCallback} from 'react'
+import {useJobStore} from '../stores/jobStore'
+import type {TranslationKeys} from '../i18n/en'
 
 export function useDeleteActions(t: TranslationKeys, refreshStorage: () => void) {
   const { deleteJob, deleteJobsByPdf, deleteAllJobs } = useJobStore()

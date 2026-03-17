@@ -1,7 +1,7 @@
-import { mkdirSync } from 'fs'
-import { open, readdir, stat } from 'fs/promises'
-import { createHash } from 'crypto'
-import { join, basename } from 'path'
+import {mkdirSync} from 'fs'
+import {open, readdir, stat} from 'fs/promises'
+import {createHash} from 'crypto'
+import {join} from 'path'
 
 const MAX_FOLDER_NAME_LENGTH = 100
 const PARTIAL_HASH_SIZE = 64 * 1024 // 64KB

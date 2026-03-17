@@ -1,5 +1,5 @@
-import { mkdirSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import {mkdirSync, writeFileSync} from 'fs'
+import {join} from 'path'
 
 const outDir = join(process.cwd(), 'test', 'fixtures', 'pdfs')
 mkdirSync(outDir, { recursive: true })

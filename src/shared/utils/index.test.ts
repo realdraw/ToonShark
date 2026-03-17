@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { toErrorMessage, extractPdfName, extractDir, formatBytes, toLocalFileUrl, sanitizeFolderId } from './index'
+import {describe, expect, it} from 'vitest'
+import {extractDir, extractPdfName, formatBytes, sanitizeFolderId, toErrorMessage, toLocalFileUrl} from './index'
 
 describe('extractPdfName', () => {
   it('should extract name from unix path', () => {

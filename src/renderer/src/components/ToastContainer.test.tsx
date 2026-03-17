@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach, vi } from 'vitest'
-import { cleanup, render, screen, fireEvent } from '@testing-library/react'
-import { ToastContainer } from './ToastContainer'
-import { useToastStore } from '../stores/toastStore'
+import {afterEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, fireEvent, render, screen} from '@testing-library/react'
+import {ToastContainer} from './ToastContainer'
+import {useToastStore} from '../stores/toastStore'
 
 afterEach(() => {
   cleanup()

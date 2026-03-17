@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import type { AppSettings } from '@shared/types'
-import { toErrorMessage } from '@shared/utils'
+import {create} from 'zustand'
+import type {AppSettings} from '@shared/types'
+import {toErrorMessage} from '@shared/utils'
 
 type SettingsStore = {
   settings: AppSettings | null

@@ -1,9 +1,9 @@
-import { copyFileSync, existsSync } from 'fs'
-import { join, basename, dirname } from 'path'
+import {copyFileSync, existsSync} from 'fs'
+import {basename, dirname, join} from 'path'
 import sharp from 'sharp'
-import type { RunSliceJobPayload, AppSettings, JobProgress, SliceFileInfo } from '@shared/types'
-import type { PdfService, RawPageResult } from './pdf.service'
-import type { SliceService } from './slice.service'
+import type {AppSettings, JobProgress, RunSliceJobPayload, SliceFileInfo} from '@shared/types'
+import type {PdfService, RawPageResult} from './pdf.service'
+import type {SliceService} from './slice.service'
 
 type ProgressCallback = (progress: JobProgress) => void
 

@@ -10,10 +10,10 @@
  *   npm run release:major    # 0.1.0 → 1.0.0
  */
 
-import { readFileSync, writeFileSync } from 'fs'
-import { execSync } from 'child_process'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import {readFileSync, writeFileSync} from 'fs'
+import {execSync} from 'child_process'
+import {dirname, resolve} from 'path'
+import {fileURLToPath} from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkgPath = resolve(__dirname, '..', 'package.json')

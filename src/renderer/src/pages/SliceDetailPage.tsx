@@ -1,10 +1,10 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { useJobStore } from '../stores/jobStore'
-import { useTranslation } from '../i18n'
-import { useToastStore } from '../stores/toastStore'
-import { toLocalFileUrl, extractDir } from '@shared/utils'
-import type { Country, Platform, ThumbnailSpec } from '@shared/types'
+import {useCallback, useEffect, useRef, useState} from 'react'
+import {useNavigate, useParams, useSearchParams} from 'react-router-dom'
+import {useJobStore} from '../stores/jobStore'
+import {useTranslation} from '../i18n'
+import {useToastStore} from '../stores/toastStore'
+import {extractDir, toLocalFileUrl} from '@shared/utils'
+import type {Country, Platform, ThumbnailSpec} from '@shared/types'
 import CropOverlay from '../components/CropOverlay'
 
 type CropTarget = {

@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import {useEffect} from 'react'
+import {Route, Routes} from 'react-router-dom'
 import HomePage from '../pages/HomePage'
 import WorkspacePage from '../pages/WorkspacePage'
 import JobDetailPage from '../pages/JobDetailPage'
@@ -7,9 +7,9 @@ import PreviewPage from '../pages/PreviewPage'
 import SliceDetailPage from '../pages/SliceDetailPage'
 import SettingsPage from '../pages/SettingsPage'
 import ExportPage from '../pages/ExportPage'
-import { useSettingsStore } from '../stores/settingsStore'
-import { I18nContext, getTranslations } from '../i18n'
-import { ToastContainer } from '../components/ToastContainer'
+import {useSettingsStore} from '../stores/settingsStore'
+import {getTranslations, I18nContext} from '../i18n'
+import {ToastContainer} from '../components/ToastContainer'
 
 function useTheme(theme: 'light' | 'dark' | 'system') {
   useEffect(() => {

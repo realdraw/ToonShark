@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useJobStore } from '../stores/jobStore'
-import { useTranslation } from '../i18n'
-import { toLocalFileUrl } from '@shared/utils'
-import { LazyImage } from '../components/LazyImage'
+import {useEffect} from 'react'
+import {useNavigate, useParams} from 'react-router-dom'
+import {useJobStore} from '../stores/jobStore'
+import {useTranslation} from '../i18n'
+import {toLocalFileUrl} from '@shared/utils'
+import {LazyImage} from '../components/LazyImage'
 
 export default function JobDetailPage() {
   const { jobId } = useParams<{ jobId: string }>()

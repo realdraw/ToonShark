@@ -1,6 +1,6 @@
-import { existsSync, readdirSync } from 'fs'
-import { join } from 'path'
-import { fixturePdfPath, mockNextOpenDialogPath, test, expect } from './fixtures'
+import {existsSync, readdirSync} from 'fs'
+import {join} from 'path'
+import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 
 /**
  * Helper: slice a PDF and navigate to the slice detail page

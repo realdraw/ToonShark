@@ -1,8 +1,8 @@
-import { mkdtempSync, mkdirSync, rmSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
-import { test as base, expect } from '@playwright/test'
-import { _electron as electron, type ElectronApplication, type Page } from 'playwright'
+import {mkdirSync, mkdtempSync, rmSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
+import {expect, test as base} from '@playwright/test'
+import {_electron as electron, type ElectronApplication, type Page} from 'playwright'
 
 type E2EFixtures = {
   electronApp: ElectronApplication

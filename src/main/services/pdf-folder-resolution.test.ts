@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { FileService } from './file.service'
-import { JobRepository } from './job-repository'
-import { mkdirSync, rmSync, writeFileSync, existsSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
-import type { JobMeta } from '@shared/types'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {FileService} from './file.service'
+import {JobRepository} from './job-repository'
+import {mkdirSync, rmSync, writeFileSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
+import type {JobMeta} from '@shared/types'
 
 /**
  * PDF 폴더 해상도(resolution) 시나리오 테스트

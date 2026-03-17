@@ -1,4 +1,4 @@
-import { fixturePdfPath, mockNextOpenDialogPath, test, expect } from './fixtures'
+import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 
 // Fixed 모드 슬라이스 실행 — 커스텀 높이 지정
 test('runs a fixed mode slice job with custom height', async ({ electronApp, page, testBaseDir }) => {

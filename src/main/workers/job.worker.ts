@@ -1,12 +1,12 @@
-import { parentPort } from 'worker_threads'
-import { rmSync } from 'fs'
+import {parentPort} from 'worker_threads'
+import {rmSync} from 'fs'
 import sharp from 'sharp'
-import { PdfService } from '../services/pdf.service'
-import { SliceService } from '../services/slice.service'
-import { runSlicePipeline } from '../services/slice-pipeline'
-import type { RunSliceJobPayload, AppSettings, JobProgress } from '@shared/types'
-import type { PipelineResult } from '../services/slice-pipeline'
-import { toErrorMessage } from '@shared/utils'
+import {PdfService} from '../services/pdf.service'
+import {SliceService} from '../services/slice.service'
+import type {PipelineResult} from '../services/slice-pipeline'
+import {runSlicePipeline} from '../services/slice-pipeline'
+import type {AppSettings, JobProgress, RunSliceJobPayload} from '@shared/types'
+import {toErrorMessage} from '@shared/utils'
 
 // Limit sharp thread pool to avoid CPU thrashing
 sharp.concurrency(1)

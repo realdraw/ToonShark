@@ -1,5 +1,5 @@
-import type { AppSettings } from '../types'
-import { DEFAULT_AUTO_SLICE } from '../types'
+import type {AppSettings} from '../types'
+import {DEFAULT_AUTO_SLICE} from '../types'
 
 export { PDF_SCALE_MIN, PDF_SCALE_MAX } from './pdf-scale'
 

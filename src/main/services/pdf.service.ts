@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs'
-import { createCanvas } from '@napi-rs/canvas'
+import {readFileSync} from 'fs'
+import {createCanvas} from '@napi-rs/canvas'
 
 // pdfjs-dist v5 legacy build for Node.js
 // Uses built-in NodeCanvasFactory which requires @napi-rs/canvas

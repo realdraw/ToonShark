@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
 
 const invoke = vi.fn()
 const send = vi.fn()

@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures'
+import {expect, test} from './fixtures'
 
 /** 설정 저장 버튼 클릭 — 언어에 따라 텍스트가 달라지므로 정확히 매칭 */
 async function clickSaveButton(page: import('playwright').Page) {

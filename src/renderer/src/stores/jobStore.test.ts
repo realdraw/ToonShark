@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { useJobStore } from './jobStore'
-import { useWorkspaceStore } from './workspaceStore'
+import {beforeEach, describe, expect, it, vi} from 'vitest'
+import {useJobStore} from './jobStore'
+import {useWorkspaceStore} from './workspaceStore'
 
 const PDF_A = '/path/to/a.pdf'
 const PDF_B = '/path/to/b.pdf'

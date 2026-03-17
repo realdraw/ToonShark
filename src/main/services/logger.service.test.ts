@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { Logger } from './logger.service'
-import { mkdirSync, rmSync, readFileSync, readdirSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {Logger} from './logger.service'
+import {mkdirSync, readdirSync, readFileSync, rmSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
 
 describe('Logger', () => {
   let testDir: string

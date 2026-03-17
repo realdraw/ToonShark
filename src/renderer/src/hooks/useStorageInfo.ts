@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react'
-import type { StorageInfo } from '@shared/types'
+import {useCallback, useEffect, useState} from 'react'
+import type {StorageInfo} from '@shared/types'
 
 export function useStorageInfo() {
   const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null)

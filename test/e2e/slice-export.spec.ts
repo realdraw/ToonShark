@@ -1,4 +1,4 @@
-import { fixturePdfPath, mockNextOpenDialogPath, test, expect } from './fixtures'
+import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 
 test('opens a generated PDF, runs slice, and exports results', async ({ electronApp, page, testBaseDir }) => {
   const pdfPath = fixturePdfPath('auto-slice-3panels.pdf')

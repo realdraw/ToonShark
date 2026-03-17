@@ -1,6 +1,6 @@
 import sharp from 'sharp'
-import { join } from 'path'
-import type { CutPosition, SliceFileInfo } from '@shared/types'
+import {join} from 'path'
+import type {CutPosition, SliceFileInfo} from '@shared/types'
 
 type SliceRange = {
   y: number

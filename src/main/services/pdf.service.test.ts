@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { PdfService } from './pdf.service'
-import { mkdirSync, rmSync, writeFileSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {PdfService} from './pdf.service'
+import {mkdirSync, rmSync, writeFileSync} from 'fs'
+import {join} from 'path'
+import {tmpdir} from 'os'
 
 // Build a minimal but spec-correct PDF with a red rectangle
 function createTestPdf(pageCount = 1): Buffer {

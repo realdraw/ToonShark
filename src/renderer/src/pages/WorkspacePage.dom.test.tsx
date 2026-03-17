@@ -1,15 +1,15 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import {MemoryRouter} from 'react-router-dom'
 import WorkspacePage from './WorkspacePage'
-import { I18nContext } from '../i18n'
+import {I18nContext} from '../i18n'
 import en from '../i18n/en'
-import { useJobStore } from '../stores/jobStore'
-import { useSettingsStore } from '../stores/settingsStore'
-import { useWorkspaceStore } from '../stores/workspaceStore'
-import { useToastStore } from '../stores/toastStore'
+import {useJobStore} from '../stores/jobStore'
+import {useSettingsStore} from '../stores/settingsStore'
+import {useWorkspaceStore} from '../stores/workspaceStore'
+import {useToastStore} from '../stores/toastStore'
 
 const navigate = vi.fn()
 const refreshStorage = vi.fn()

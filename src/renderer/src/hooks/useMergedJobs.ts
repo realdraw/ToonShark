@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import type { JobMeta } from '@shared/types'
+import {useMemo} from 'react'
+import type {JobMeta} from '@shared/types'
 
 export function useMergedJobs(
   sessionResults: JobMeta[],

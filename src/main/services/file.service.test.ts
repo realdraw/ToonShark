@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { FileService } from './file.service'
-import { mkdirSync, rmSync, existsSync } from 'fs'
-import { join, dirname } from 'path'
-import { tmpdir } from 'os'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {FileService} from './file.service'
+import {existsSync, mkdirSync, rmSync} from 'fs'
+import {dirname, join} from 'path'
+import {tmpdir} from 'os'
 
 describe('FileService', () => {
   let service: FileService

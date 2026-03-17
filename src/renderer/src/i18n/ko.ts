@@ -1,4 +1,4 @@
-import type { TranslationKeys } from './en'
+import type {TranslationKeys} from './en'
 
 const ko: TranslationKeys = {
   // Common

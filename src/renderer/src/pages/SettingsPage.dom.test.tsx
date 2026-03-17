@@ -1,14 +1,14 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
+import {cleanup, render, screen, waitFor} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import {MemoryRouter} from 'react-router-dom'
 import SettingsPage from './SettingsPage'
-import { I18nContext } from '../i18n'
+import {I18nContext} from '../i18n'
 import en from '../i18n/en'
-import { useSettingsStore } from '../stores/settingsStore'
-import { useToastStore } from '../stores/toastStore'
-import type { AppSettings, DevicePreset } from '@shared/types'
+import {useSettingsStore} from '../stores/settingsStore'
+import {useToastStore} from '../stores/toastStore'
+import type {AppSettings, DevicePreset} from '@shared/types'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')

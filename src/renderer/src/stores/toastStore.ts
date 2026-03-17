@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import {create} from 'zustand'
 
 const TOAST_DURATION_MS = 4000
 const TOAST_WITH_ACTION_DURATION_MS = 8000

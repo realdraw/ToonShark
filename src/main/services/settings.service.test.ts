@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { SettingsService } from './settings.service'
-import { mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs'
-import { join } from 'path'
-import { homedir, tmpdir } from 'os'
-import type { AppSettings } from '@shared/types'
-import { DEFAULT_SETTINGS } from '@shared/constants'
-import { resolve } from 'path'
+import {afterEach, beforeEach, describe, expect, it} from 'vitest'
+import {SettingsService} from './settings.service'
+import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'fs'
+import {join, resolve} from 'path'
+import {homedir, tmpdir} from 'os'
+import type {AppSettings} from '@shared/types'
+import {DEFAULT_SETTINGS} from '@shared/constants'
 
 const DEFAULTS_DIR = resolve(__dirname, '..', '..', '..', 'resources', 'defaults')
 

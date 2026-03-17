@@ -8,12 +8,11 @@
  * Requires: playwright (devDependency)
  */
 
-import { _electron as electron } from 'playwright'
-import { mkdtempSync, mkdirSync, rmSync } from 'fs'
-import { join } from 'path'
-import { tmpdir } from 'os'
-import { fileURLToPath } from 'url'
-import { dirname, resolve } from 'path'
+import {_electron as electron} from 'playwright'
+import {mkdirSync, mkdtempSync, rmSync} from 'fs'
+import {dirname, join, resolve} from 'path'
+import {tmpdir} from 'os'
+import {fileURLToPath} from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)

@@ -1,4 +1,4 @@
-import { fixturePdfPath, mockNextOpenDialogPath, test, expect } from './fixtures'
+import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 
 // 작업이 없을 때 빈 상태 메시지 표시
 test('shows empty state when no jobs exist', async ({ page }) => {

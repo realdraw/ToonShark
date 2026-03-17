@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
-import { DEFAULT_SETTINGS } from './index'
-import type { DevicePreset, Country } from '../types'
-import { DEFAULT_AUTO_SLICE } from '../types'
+import {describe, expect, it} from 'vitest'
+import {readFileSync} from 'fs'
+import {resolve} from 'path'
+import {DEFAULT_SETTINGS} from './index'
+import type {Country, DevicePreset} from '../types'
+import {DEFAULT_AUTO_SLICE} from '../types'
 
 describe('DEFAULT_SETTINGS auto-slice consistency', () => {
   it('whiteThreshold should be within UI slider range (230-255)', () => {
@@ -247,7 +247,7 @@ describe('Windows compatibility: local-file protocol', () => {
       'utf-8'
     )
     expect(source).toContain('pathToFileURL')
-    expect(source).toContain("import { pathToFileURL } from 'url'")
+    expect(source).toContain("import {pathToFileURL} from 'url'")
   })
 
   it('main/index.ts should have sandbox: true in webPreferences', () => {

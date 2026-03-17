@@ -1,6 +1,6 @@
-import { create } from 'zustand'
-import type { SliceMode, CutPosition, AppSettings } from '@shared/types'
-import { DEFAULT_AUTO_SLICE } from '@shared/types'
+import {create} from 'zustand'
+import type {AppSettings, CutPosition, SliceMode} from '@shared/types'
+import {DEFAULT_AUTO_SLICE} from '@shared/types'
 
 export type PdfOptions = {
   mode: SliceMode

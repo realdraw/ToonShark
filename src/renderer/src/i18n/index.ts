@@ -1,6 +1,6 @@
-import { createContext, useContext } from 'react'
-import type { Locale } from '@shared/types'
-import type { TranslationKeys } from './en'
+import {createContext, useContext} from 'react'
+import type {Locale} from '@shared/types'
+import type {TranslationKeys} from './en'
 import en from './en'
 import ko from './ko'
 

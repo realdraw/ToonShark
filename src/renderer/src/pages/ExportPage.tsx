@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { useGoBack } from '../hooks/useGoBack'
-import { useJobStore } from '../stores/jobStore'
-import { useTranslation } from '../i18n'
-import { useToastStore } from '../stores/toastStore'
-import type { Country, ExportHistoryEntry, ExportPlatformEntry } from '@shared/types'
+import {useEffect, useMemo, useState} from 'react'
+import {useParams} from 'react-router-dom'
+import {useGoBack} from '../hooks/useGoBack'
+import {useJobStore} from '../stores/jobStore'
+import {useTranslation} from '../i18n'
+import {useToastStore} from '../stores/toastStore'
+import type {Country, ExportHistoryEntry, ExportPlatformEntry} from '@shared/types'
 
 export default function ExportPage() {
   const { jobId } = useParams<{ jobId: string }>()
