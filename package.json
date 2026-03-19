@@ -24,6 +24,7 @@
     "release:major": "node scripts/release.mjs major"
   },
   "build": {
+    "publish": null,
     "appId": "com.toonshark.app",
     "productName": "ToonShark",
     "directories": {
