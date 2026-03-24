@@ -2,10 +2,13 @@ export function toErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
-export function extractPdfName(path: string): string {
-  const filename = path.split(/[\\/]/).pop()?.replace(/\.pdf$/i, '') ?? ''
+export function extractSourceName(path: string): string {
+  const filename = path.split(/[\\/]/).pop()?.replace(/\.(pdf|jpe?g|png)$/i, '') ?? ''
   return filename || 'untitled'
 }
+
+/** @deprecated Use extractSourceName instead */
+export const extractPdfName = extractSourceName
 
 export function toLocalFileUrl(filePath: string): string {
   const normalized = filePath.replace(/\\/g, '/')

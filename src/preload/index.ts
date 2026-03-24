@@ -16,8 +16,8 @@ import type {
 
 
 const api = {
-  selectSourcePdf: (): Promise<string | null> =>
-    ipcRenderer.invoke('select-source-pdf'),
+  selectSourceFile: (): Promise<string | null> =>
+    ipcRenderer.invoke('select-source-file'),
 
   selectBaseDir: (): Promise<string | null> =>
     ipcRenderer.invoke('select-base-dir'),
@@ -73,8 +73,8 @@ const api = {
   getStorageInfo: (): Promise<StorageInfo> =>
     ipcRenderer.invoke('get-storage-info'),
 
-  getPdfPageDimensions: (pdfPath: string): Promise<{ width: number; height: number }> =>
-    ipcRenderer.invoke('get-pdf-page-dimensions', pdfPath),
+  getSourceDimensions: (filePath: string): Promise<{ width: number; height: number }> =>
+    ipcRenderer.invoke('get-source-dimensions', filePath),
 
   runSliceJob: (payload: RunSliceJobPayload): Promise<JobMeta> =>
     ipcRenderer.invoke('run-slice-job', payload),
@@ -82,14 +82,14 @@ const api = {
   generatePreview: (jobId: string): Promise<void> =>
     ipcRenderer.invoke('generate-preview', jobId),
 
-  openSourcePdf: (jobId: string): Promise<void> =>
-    ipcRenderer.invoke('open-source-pdf', jobId),
+  openSourceFile: (jobId: string): Promise<void> =>
+    ipcRenderer.invoke('open-source-file', jobId),
 
   deleteJob: (jobId: string): Promise<boolean> =>
     ipcRenderer.invoke('delete-job', jobId),
 
-  deleteJobsByPdf: (sourcePdfPath: string): Promise<number> =>
-    ipcRenderer.invoke('delete-jobs-by-pdf', sourcePdfPath),
+  deleteJobsBySource: (sourceFilePath: string): Promise<number> =>
+    ipcRenderer.invoke('delete-jobs-by-source', sourceFilePath),
 
   deleteAllJobs: (): Promise<number> =>
     ipcRenderer.invoke('delete-all-jobs'),

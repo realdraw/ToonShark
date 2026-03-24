@@ -3,7 +3,7 @@ import {useJobStore} from '../stores/jobStore'
 import type {TranslationKeys} from '../i18n/en'
 
 export function useDeleteActions(t: TranslationKeys, refreshStorage: () => void) {
-  const { deleteJob, deleteJobsByPdf, deleteAllJobs } = useJobStore()
+  const { deleteJob, deleteJobsBySource, deleteAllJobs } = useJobStore()
 
   const confirmDeleteJob = useCallback(
     async (jobId: string) => {
@@ -14,13 +14,13 @@ export function useDeleteActions(t: TranslationKeys, refreshStorage: () => void)
     [t, deleteJob, refreshStorage]
   )
 
-  const confirmDeleteJobsByPdf = useCallback(
-    async (pdfPath: string, pdfName: string) => {
-      if (!confirm(t.confirmDeletePdf(pdfName))) return
-      await deleteJobsByPdf(pdfPath)
+  const confirmDeleteJobsBySource = useCallback(
+    async (filePath: string, fileName: string) => {
+      if (!confirm(t.confirmDeleteSource(fileName))) return
+      await deleteJobsBySource(filePath)
       refreshStorage()
     },
-    [t, deleteJobsByPdf, refreshStorage]
+    [t, deleteJobsBySource, refreshStorage]
   )
 
   const confirmDeleteAll = useCallback(
@@ -32,5 +32,5 @@ export function useDeleteActions(t: TranslationKeys, refreshStorage: () => void)
     [t, deleteAllJobs, refreshStorage]
   )
 
-  return { confirmDeleteJob, confirmDeleteJobsByPdf, confirmDeleteAll }
+  return { confirmDeleteJob, confirmDeleteJobsBySource, confirmDeleteAll }
 }

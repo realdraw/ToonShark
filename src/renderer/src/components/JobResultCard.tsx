@@ -70,10 +70,10 @@ export function JobResultCard({
             {t.preview}
           </button>
           <button
-            onClick={() => window.api.openSourcePdf(job.id).catch(() => {})}
+            onClick={() => window.api.openSourceFile(job.id).catch(() => {})}
             className="px-3 py-1 bg-elevated hover:bg-hover-elevated rounded text-xs transition"
           >
-            {t.sourcePdf}
+            {t.sourceFile}
           </button>
           <button
             onClick={() => window.api.openPath(job.versionPath).catch(() => {})}

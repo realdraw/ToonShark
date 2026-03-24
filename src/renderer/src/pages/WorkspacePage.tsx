@@ -5,30 +5,31 @@ import {useSettingsStore} from '../stores/settingsStore'
 import {type PdfOptions, useWorkspaceStore} from '../stores/workspaceStore'
 import {useTranslation} from '../i18n'
 import {useToastStore} from '../stores/toastStore'
-import {usePdfDrop} from '../hooks/usePdfDrop'
+import {useFileDrop} from '../hooks/useFileDrop'
 import {useMergedJobs} from '../hooks/useMergedJobs'
 import {useStorageInfo} from '../hooks/useStorageInfo'
 import {useDeleteActions} from '../hooks/useDeleteActions'
 import {OptionPanel} from '../components/OptionPanel'
 import {ResultsPanel} from '../components/ResultsPanel'
 import {DropOverlay} from '../components/DropOverlay'
+import {isPdfFile, getFileExtension} from '@shared/constants'
 
 export default function WorkspacePage() {
   const navigate = useNavigate()
   const t = useTranslation()
   const {
-    pdfList,
-    activePdfPath,
-    addPdf,
-    addPdfByPath,
-    setActivePdf,
-    removePdf,
+    fileList,
+    activeFilePath,
+    addFile,
+    addFileByPath,
+    setActiveFile,
+    removeFile,
     sessionResults,
     recentJobs,
     fetchRecentJobs,
     runSliceJob,
     isRunning,
-    runningPdfPath,
+    runningFilePath,
     progress,
     error
   } = useJobStore()
@@ -37,7 +38,7 @@ export default function WorkspacePage() {
 
   const { storageInfo, refreshStorage } = useStorageInfo()
   const { confirmDeleteJob } = useDeleteActions(t, refreshStorage)
-  const activeJobs = useMergedJobs(sessionResults, recentJobs, activePdfPath)
+  const activeJobs = useMergedJobs(sessionResults, recentJobs, activeFilePath)
 
   useEffect(() => {
     loadSettings()
@@ -49,43 +50,43 @@ export default function WorkspacePage() {
     if (settings) setSettings(settings)
   }, [settings, setSettings])
 
-  // Initialize options for active PDF when it changes
+  // Initialize options for active file when it changes
   useEffect(() => {
-    if (activePdfPath) initOptions(activePdfPath)
-  }, [activePdfPath, initOptions])
+    if (activeFilePath) initOptions(activeFilePath)
+  }, [activeFilePath, initOptions])
 
   // Get current tab's options
-  const opts = activePdfPath ? getOptions(activePdfPath) : null
+  const opts = activeFilePath ? getOptions(activeFilePath) : null
 
-  // Update prefix when active PDF changes (only if prefix is empty)
-  const activePdf = pdfList.find((p) => p.path === activePdfPath)
+  // Update prefix when active file changes (only if prefix is empty)
+  const activeFile = fileList.find((p) => p.path === activeFilePath)
   useEffect(() => {
-    if (activePdf && activePdfPath && opts && !opts.prefix) {
+    if (activeFile && activeFilePath && opts && !opts.prefix) {
       const defaultPrefix = settings?.naming.defaultPrefix
       if (defaultPrefix) {
-        setPrefix(activePdfPath, defaultPrefix)
+        setPrefix(activeFilePath, defaultPrefix)
       } else {
         setPrefix(
-          activePdfPath,
-          activePdf.name.replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '')
+          activeFilePath,
+          activeFile.name.replace(/\s+/g, '_').replace(/[^\p{L}\p{N}_-]/gu, '')
         )
       }
     }
-  }, [activePdf, activePdfPath, opts, settings, setPrefix])
+  }, [activeFile, activeFilePath, opts, settings, setPrefix])
 
-  // Redirect if no PDFs
+  // Redirect if no files
   useEffect(() => {
-    if (pdfList.length === 0) navigate('/')
-  }, [pdfList.length, navigate])
+    if (fileList.length === 0) navigate('/')
+  }, [fileList.length, navigate])
 
-  const activePdfStorage = storageInfo?.pdfs.find((p) => p.sourcePdfPath === activePdfPath) ?? null
+  const activeFileStorage = storageInfo?.sources.find((p) => p.sourceFilePath === activeFilePath) ?? null
 
   const addToast = useToastStore((s) => s.addToast)
 
   const handleRun = async () => {
-    if (!activePdfPath || !activePdf || !opts) return
+    if (!activeFilePath || !activeFile || !opts) return
 
-    const prefix = opts.prefix || activePdf.name
+    const prefix = opts.prefix || activeFile.name
     const options =
       opts.mode === 'fixed'
         ? { sliceHeight: opts.sliceHeight, startOffset: opts.startOffset }
@@ -113,11 +114,11 @@ export default function WorkspacePage() {
 
     try {
       const meta = await runSliceJob({
-        sourcePdfPath: activePdfPath,
-        title: activePdf.name,
+        sourceFilePath: activeFilePath,
+        title: activeFile.name,
         prefix,
         mode: opts.mode,
-        pdfScale: opts.pdfScale,
+        pdfScale: isPdfFile(activeFilePath) ? opts.pdfScale : undefined,
         options
       })
       addToast('success', t.toastJobSuccess(meta.sliceCount))
@@ -127,22 +128,28 @@ export default function WorkspacePage() {
     }
   }
 
-  const handleClosePdf = (path: string, e: React.MouseEvent) => {
+  const handleCloseFile = (path: string, e: React.MouseEvent) => {
     e.stopPropagation()
-    removePdf(path)
+    removeFile(path)
   }
 
   const handleOptionChange = useCallback(<K extends keyof PdfOptions>(key: K, value: PdfOptions[K]) => {
-    if (activePdfPath) updateOption(activePdfPath, key, value)
-  }, [activePdfPath, updateOption])
+    if (activeFilePath) updateOption(activeFilePath, key, value)
+  }, [activeFilePath, updateOption])
 
-  const handlePdfDrop = useCallback((paths: string[]) => {
-    for (const path of paths) addPdfByPath(path)
-  }, [addPdfByPath])
+  const handleFileDrop = useCallback((paths: string[]) => {
+    for (const path of paths) addFileByPath(path)
+  }, [addFileByPath])
 
-  const { isDragging, dropProps } = usePdfDrop({ onDrop: handlePdfDrop })
+  const { isDragging, dropProps } = useFileDrop({ onDrop: handleFileDrop })
 
-  if (pdfList.length === 0 || !opts || !activePdfPath) return null
+  if (fileList.length === 0 || !opts || !activeFilePath) return null
+
+  /** Display name with extension for tab label */
+  const tabLabel = (file: { path: string; name: string }) => {
+    const ext = getFileExtension(file.path).replace('.', '').toUpperCase()
+    return `${file.name}.${ext.toLowerCase()}`
+  }
 
   return (
     <div
@@ -150,26 +157,26 @@ export default function WorkspacePage() {
       {...dropProps}
     >
       {isDragging && <DropOverlay />}
-      {/* Top: PDF Tabs */}
+      {/* Top: File Tabs */}
       <div className="flex-shrink-0 bg-surface border-b border-border flex items-center">
         <div className="flex overflow-x-auto flex-1">
-          {pdfList.map((pdf) => (
+          {fileList.map((file) => (
             <button
-              key={pdf.path}
-              onClick={() => setActivePdf(pdf.path)}
+              key={file.path}
+              onClick={() => setActiveFile(file.path)}
               className={`group flex items-center gap-2 px-4 py-2.5 text-sm cursor-pointer border-b-2 transition whitespace-nowrap ${
-                pdf.path === activePdfPath
+                file.path === activeFilePath
                   ? 'border-blue-500 text-primary bg-base'
                   : 'border-transparent text-tertiary hover:text-secondary hover:bg-hover'
               }`}
             >
-              {isRunning && runningPdfPath === pdf.path && (
+              {isRunning && runningFilePath === file.path && (
                 <span className="flex-shrink-0 w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
               )}
-              <span className="truncate max-w-[200px]">{pdf.name}.pdf</span>
+              <span className="truncate max-w-[200px]">{tabLabel(file)}</span>
               <button
                 type="button"
-                onClick={(e) => handleClosePdf(pdf.path, e)}
+                onClick={(e) => handleCloseFile(file.path, e)}
                 className="opacity-0 group-hover:opacity-100 text-muted hover:text-primary transition ml-1 text-xs bg-transparent border-none p-0 cursor-pointer"
               >
                 x
@@ -178,10 +185,10 @@ export default function WorkspacePage() {
           ))}
         </div>
         <button
-          onClick={addPdf}
+          onClick={addFile}
           className="flex-shrink-0 px-4 py-2.5 text-tertiary hover:text-primary hover:bg-hover transition text-sm border-l border-border"
         >
-          {t.addPdf}
+          {t.addFile}
         </button>
         <button
           onClick={() => navigate('/')}
@@ -193,18 +200,18 @@ export default function WorkspacePage() {
 
       <div className="flex flex-1 overflow-hidden">
         <OptionPanel
-          pdfPath={activePdfPath}
+          filePath={activeFilePath}
           options={opts}
           onOptionChange={handleOptionChange}
-          isRunning={isRunning} canRun={!!activePdfPath} progress={progress} error={error}
-          runningPdfName={runningPdfPath ? pdfList.find(p => p.path === runningPdfPath)?.name : undefined}
+          isRunning={isRunning} canRun={!!activeFilePath} progress={progress} error={error}
+          runningFileName={runningFilePath ? fileList.find(p => p.path === runningFilePath)?.name : undefined}
           onRun={handleRun} t={t}
         />
 
         <ResultsPanel
           activeJobs={activeJobs}
-          activePdfName={activePdf?.name}
-          activePdfStorage={activePdfStorage}
+          activePdfName={activeFile?.name}
+          activePdfStorage={activeFileStorage}
           navigate={navigate}
           onDeleteJob={confirmDeleteJob}
           t={t}

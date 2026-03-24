@@ -20,8 +20,8 @@ function createTestJob(
     id: `${title}_${versionId}`,
     title,
     prefix: title,
-    sourcePdfPath: '/tmp/test.pdf',
-    copiedPdfPath: join(versionPath, 'source', 'test.pdf'),
+    sourceFilePath: '/tmp/test.pdf',
+    copiedSourcePath: join(versionPath, 'source', 'test.pdf'),
     createdAt,
     mode: 'fixed',
 
@@ -129,8 +129,8 @@ describe('JobRepository', () => {
         id: 'test_id',
         title: 'save_test',
         prefix: 'save_test',
-        sourcePdfPath: '/tmp/test.pdf',
-        copiedPdfPath: join(versionPath, 'source', 'test.pdf'),
+        sourceFilePath: '/tmp/test.pdf',
+        copiedSourcePath: join(versionPath, 'source', 'test.pdf'),
         createdAt: '2026-03-12T10:00:00Z',
         mode: 'fixed',
 
@@ -149,14 +149,14 @@ describe('JobRepository', () => {
     })
   })
 
-  describe('deleteJobsByPdf', () => {
+  describe('deleteJobsBySource', () => {
     it('should delete all jobs for a given source PDF', async () => {
       const v1 = join(testDir, 'jobs', 'comic_a', 'v1')
       mkdirSync(join(v1, 'slices'), { recursive: true })
       mkdirSync(join(v1, 'preview'), { recursive: true })
       writeFileSync(join(v1, 'meta.json'), JSON.stringify({
         id: 'a1', title: 'comic_a', prefix: 'comic_a',
-        sourcePdfPath: '/tmp/a.pdf', copiedPdfPath: '', createdAt: '2026-03-12T10:00:00Z',
+        sourceFilePath: '/tmp/a.pdf', copiedSourcePath: '', createdAt: '2026-03-12T10:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath: v1, options: {}, files: []
       }))
@@ -166,14 +166,14 @@ describe('JobRepository', () => {
       mkdirSync(join(v2, 'preview'), { recursive: true })
       writeFileSync(join(v2, 'meta.json'), JSON.stringify({
         id: 'a2', title: 'comic_a', prefix: 'comic_a',
-        sourcePdfPath: '/tmp/a.pdf', copiedPdfPath: '', createdAt: '2026-03-12T11:00:00Z',
+        sourceFilePath: '/tmp/a.pdf', copiedSourcePath: '', createdAt: '2026-03-12T11:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath: v2, options: {}, files: []
       }))
 
       createTestJob(testDir, 'comic_b', 'v1', '2026-03-12T12:00:00Z')
 
-      const deleted = await repo.deleteJobsByPdf('/tmp/a.pdf')
+      const deleted = await repo.deleteJobsBySource('/tmp/a.pdf')
       expect(deleted).toBe(2)
       expect(existsSync(v1)).toBe(false)
       expect(existsSync(v2)).toBe(false)
@@ -185,7 +185,7 @@ describe('JobRepository', () => {
     })
 
     it('should return 0 when no jobs match', async () => {
-      const deleted = await repo.deleteJobsByPdf('/tmp/nonexistent.pdf')
+      const deleted = await repo.deleteJobsBySource('/tmp/nonexistent.pdf')
       expect(deleted).toBe(0)
     })
 
@@ -197,7 +197,7 @@ describe('JobRepository', () => {
       // Create an unrelated source-only folder that should NOT be deleted
       const unrelatedPath = createSourceOnlyCache(testDir, 'other_comic', 'b.pdf')
 
-      const deleted = await repo.deleteJobsByPdf('/tmp/a.pdf')
+      const deleted = await repo.deleteJobsBySource('/tmp/a.pdf')
       expect(deleted).toBe(1)
       expect(existsSync(orphanPath)).toBe(false)
       expect(existsSync(unrelatedPath)).toBe(true)
@@ -245,7 +245,7 @@ describe('JobRepository', () => {
       // Save meta (should invalidate cache)
       const meta: JobMeta = {
         id: 'cache_test_v1', title: 'cache_test', prefix: 'cache_test',
-        sourcePdfPath: '/tmp/test.pdf', copiedPdfPath: '',
+        sourceFilePath: '/tmp/test.pdf', copiedSourcePath: '',
         createdAt: '2026-03-12T10:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath, options: {}, files: []
@@ -278,7 +278,7 @@ describe('JobRepository', () => {
       mkdirSync(v1, { recursive: true })
       writeFileSync(join(v1, 'meta.json'), JSON.stringify({
         id: 'good1', title: 'good_job', prefix: 'good_job',
-        sourcePdfPath: '/tmp/test.pdf', copiedPdfPath: '',
+        sourceFilePath: '/tmp/test.pdf', copiedSourcePath: '',
         createdAt: '2026-03-12T10:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath: v1, options: {}, files: []
@@ -336,7 +336,7 @@ describe('JobRepository', () => {
     it('should return empty when no jobs exist', async () => {
       const info = await repo.getStorageInfo()
       expect(info.totalSize).toBe(0)
-      expect(info.pdfs).toEqual([])
+      expect(info.sources).toEqual([])
     })
 
     it('should return size info grouped by PDF', async () => {
@@ -353,11 +353,11 @@ describe('JobRepository', () => {
       const info = await repo.getStorageInfo()
 
       expect(info.totalSize).toBeGreaterThan(0)
-      expect(info.pdfs).toHaveLength(1) // all share same sourcePdfPath '/tmp/test.pdf'
-      expect(info.pdfs[0].jobs).toHaveLength(3)
+      expect(info.sources).toHaveLength(1) // all share same sourceFilePath '/tmp/test.pdf'
+      expect(info.sources[0].jobs).toHaveLength(3)
 
       // Each job size should include meta.json + dummy file
-      for (const job of info.pdfs[0].jobs) {
+      for (const job of info.sources[0].jobs) {
         expect(job.size).toBeGreaterThan(0)
       }
     })
@@ -368,7 +368,7 @@ describe('JobRepository', () => {
       mkdirSync(join(v1, 'preview'), { recursive: true })
       const meta1: JobMeta = {
         id: 'x1', title: 'pdf_x', prefix: 'pdf_x',
-        sourcePdfPath: '/tmp/x.pdf', copiedPdfPath: '', createdAt: '2026-03-12T10:00:00Z',
+        sourceFilePath: '/tmp/x.pdf', copiedSourcePath: '', createdAt: '2026-03-12T10:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath: v1, options: {}, files: []
       }
@@ -379,15 +379,15 @@ describe('JobRepository', () => {
       mkdirSync(join(v2, 'preview'), { recursive: true })
       const meta2: JobMeta = {
         id: 'y1', title: 'pdf_y', prefix: 'pdf_y',
-        sourcePdfPath: '/tmp/y.pdf', copiedPdfPath: '', createdAt: '2026-03-12T11:00:00Z',
+        sourceFilePath: '/tmp/y.pdf', copiedSourcePath: '', createdAt: '2026-03-12T11:00:00Z',
         mode: 'fixed', pageCount: 1, sliceCount: 1,
         versionPath: v2, options: {}, files: []
       }
       writeFileSync(join(v2, 'meta.json'), JSON.stringify(meta2))
 
       const info = await repo.getStorageInfo()
-      expect(info.pdfs).toHaveLength(2)
-      const names = info.pdfs.map((p) => p.name).sort()
+      expect(info.sources).toHaveLength(2)
+      const names = info.sources.map((p) => p.name).sort()
       expect(names).toEqual(['x', 'y'])
     })
 
@@ -397,10 +397,10 @@ describe('JobRepository', () => {
       const info = await repo.getStorageInfo()
 
       expect(info.totalSize).toBeGreaterThanOrEqual(4096)
-      expect(info.pdfs).toHaveLength(1)
-      expect(info.pdfs[0].name).toBe('cached')
-      expect(info.pdfs[0].jobs).toEqual([])
-      expect(info.pdfs[0].sourcePdfPath).toBe(join(sourceOnly, 'source', 'cached.pdf'))
+      expect(info.sources).toHaveLength(1)
+      expect(info.sources[0].name).toBe('cached')
+      expect(info.sources[0].jobs).toEqual([])
+      expect(info.sources[0].sourceFilePath).toBe(join(sourceOnly, 'source', 'cached.pdf'))
     })
   })
 })

@@ -1,58 +1,58 @@
 import {describe, expect, it} from 'vitest'
-import {extractDir, extractPdfName, formatBytes, sanitizeFolderId, toErrorMessage, toLocalFileUrl} from './index'
+import {extractDir, extractSourceName, formatBytes, sanitizeFolderId, toErrorMessage, toLocalFileUrl} from './index'
 
-describe('extractPdfName', () => {
+describe('extractSourceName', () => {
   it('should extract name from unix path', () => {
-    expect(extractPdfName('/Users/beni/comics/my_comic.pdf')).toBe('my_comic')
+    expect(extractSourceName('/Users/beni/comics/my_comic.pdf')).toBe('my_comic')
   })
 
   it('should extract name from path with .PDF extension (case insensitive)', () => {
-    expect(extractPdfName('/tmp/WEBTOON.PDF')).toBe('WEBTOON')
+    expect(extractSourceName('/tmp/WEBTOON.PDF')).toBe('WEBTOON')
   })
 
   it('should handle filename only (no directory)', () => {
-    expect(extractPdfName('chapter01.pdf')).toBe('chapter01')
+    expect(extractSourceName('chapter01.pdf')).toBe('chapter01')
   })
 
   it('should handle path with spaces', () => {
-    expect(extractPdfName('/Users/beni/My Comics/episode 1.pdf')).toBe('episode 1')
+    expect(extractSourceName('/Users/beni/My Comics/episode 1.pdf')).toBe('episode 1')
   })
 
   it('should handle Korean filename', () => {
-    expect(extractPdfName('/tmp/웹툰_1화.pdf')).toBe('웹툰_1화')
+    expect(extractSourceName('/tmp/웹툰_1화.pdf')).toBe('웹툰_1화')
   })
 
   it('should return untitled for empty path', () => {
-    expect(extractPdfName('')).toBe('untitled')
+    expect(extractSourceName('')).toBe('untitled')
   })
 
   it('should handle filename with multiple dots', () => {
-    expect(extractPdfName('/tmp/my.comic.v2.pdf')).toBe('my.comic.v2')
+    expect(extractSourceName('/tmp/my.comic.v2.pdf')).toBe('my.comic.v2')
   })
 
   it('should not strip .pdf from middle of filename', () => {
-    expect(extractPdfName('/tmp/pdf_archive.txt')).toBe('pdf_archive.txt')
+    expect(extractSourceName('/tmp/pdf_archive.txt')).toBe('pdf_archive.txt')
   })
 
   it('should handle trailing slash gracefully', () => {
     // split('/').pop() returns '' for trailing slash
-    expect(extractPdfName('/tmp/comics/')).toBe('untitled')
+    expect(extractSourceName('/tmp/comics/')).toBe('untitled')
   })
 
   it('should handle Windows-style backslash paths', () => {
-    expect(extractPdfName('C:\\Users\\beni\\comic.pdf')).toBe('comic')
+    expect(extractSourceName('C:\\Users\\beni\\comic.pdf')).toBe('comic')
   })
 
   it('should handle mixed separators', () => {
-    expect(extractPdfName('C:\\Users/beni\\my_comic.pdf')).toBe('my_comic')
+    expect(extractSourceName('C:\\Users/beni\\my_comic.pdf')).toBe('my_comic')
   })
 
   it('should return filename as-is for non-pdf extension', () => {
-    expect(extractPdfName('/tmp/archive.zip')).toBe('archive.zip')
+    expect(extractSourceName('/tmp/archive.zip')).toBe('archive.zip')
   })
 
   it('should handle path with only extension', () => {
-    expect(extractPdfName('.pdf')).toBe('untitled')
+    expect(extractSourceName('.pdf')).toBe('untitled')
   })
 })
 

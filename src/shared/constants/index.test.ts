@@ -153,9 +153,9 @@ describe('Drag-and-drop: pointer-events-none on overlay', () => {
     expect(source).toContain('isDragging')
   })
 
-  it('usePdfDrop hook should have drag-and-drop handlers with preventDefault', () => {
+  it('useFileDrop hook should have drag-and-drop handlers with preventDefault', () => {
     const source = readFileSync(
-      resolve(__dirname, '../../renderer/src/hooks/usePdfDrop.ts'),
+      resolve(__dirname, '../../renderer/src/hooks/useFileDrop.ts'),
       'utf-8'
     )
     expect(source).toContain('onDrop')
@@ -165,16 +165,16 @@ describe('Drag-and-drop: pointer-events-none on overlay', () => {
     expect(source).toContain('setIsDragging')
   })
 
-  it('usePdfDrop hook should filter for .pdf files on drop', () => {
+  it('useFileDrop hook should filter for supported files on drop', () => {
     const source = readFileSync(
-      resolve(__dirname, '../../renderer/src/hooks/usePdfDrop.ts'),
+      resolve(__dirname, '../../renderer/src/hooks/useFileDrop.ts'),
       'utf-8'
     )
-    expect(source).toContain(".endsWith('.pdf')")
+    expect(source).toContain('isSupportedFile')
     expect(source).toContain('getPathForFile')
   })
 
-  it('HomePage and WorkspacePage should use usePdfDrop hook', () => {
+  it('HomePage and WorkspacePage should use useFileDrop hook', () => {
     const home = readFileSync(
       resolve(__dirname, '../../renderer/src/pages/HomePage.tsx'),
       'utf-8'
@@ -183,8 +183,8 @@ describe('Drag-and-drop: pointer-events-none on overlay', () => {
       resolve(__dirname, '../../renderer/src/pages/WorkspacePage.tsx'),
       'utf-8'
     )
-    expect(home).toContain('usePdfDrop')
-    expect(workspace).toContain('usePdfDrop')
+    expect(home).toContain('useFileDrop')
+    expect(workspace).toContain('useFileDrop')
     expect(home).toContain('dropProps')
     expect(workspace).toContain('dropProps')
   })

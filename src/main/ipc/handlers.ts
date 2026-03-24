@@ -5,7 +5,7 @@ import type {PreviewService} from '../services/preview.service'
 import type {JobRepository} from '../services/job-repository'
 import type {JobExecutionService} from '../services/job-execution.service'
 import type {ExportService} from '../services/export.service'
-import type {PdfService} from '../services/pdf.service'
+import type {SourceService} from '../services/source.service'
 import type {Logger} from '../services/logger.service'
 import type {
   AppSettings,
@@ -15,7 +15,7 @@ import type {
   JobProgress,
   RunSliceJobPayload
 } from '@shared/types'
-import {DEFAULT_SETTINGS, PDF_SCALE_MAX, PDF_SCALE_MIN} from '@shared/constants'
+import {DEFAULT_SETTINGS, PDF_SCALE_MAX, PDF_SCALE_MIN, getDialogFilters, isSupportedFile} from '@shared/constants'
 import {toErrorMessage} from '@shared/utils'
 
 type Services = {
@@ -24,7 +24,7 @@ type Services = {
   jobRepository: JobRepository
   jobExecutionService: JobExecutionService
   exportService: ExportService
-  pdfService: PdfService
+  sourceService: SourceService
   logger: Logger
   getMainWindow: () => BrowserWindow | null
 }
@@ -84,7 +84,7 @@ function validateSettings(settings: unknown): AppSettings {
 function validatePayload(payload: unknown): RunSliceJobPayload {
   if (!payload || typeof payload !== 'object') throw new Error('Invalid payload')
   const p = payload as RunSliceJobPayload
-  if (!p.sourcePdfPath || typeof p.sourcePdfPath !== 'string') throw new Error('Missing sourcePdfPath')
+  if (!p.sourceFilePath || typeof p.sourceFilePath !== 'string') throw new Error('Missing sourceFilePath')
   if (!p.prefix || typeof p.prefix !== 'string') throw new Error('Missing prefix')
   if (!['fixed', 'auto'].includes(p.mode)) throw new Error('Invalid mode')
 
@@ -132,9 +132,9 @@ function isPathWithinBaseDir(targetPath: string, baseDir: string): boolean {
 function registerDialogHandlers(services: Services) {
   const { settingsService } = services
 
-  ipcMain.handle('select-source-pdf', async () => {
+  ipcMain.handle('select-source-file', async () => {
     const result = await dialog.showOpenDialog({
-      filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+      filters: getDialogFilters(),
       properties: ['openFile']
     })
     if (result.canceled || result.filePaths.length === 0) return null
@@ -336,7 +336,7 @@ function registerJobHandlers(services: Services) {
     if (state.isSliceRunning) throw new Error('A slice job is already running')
     state.isSliceRunning = true
     const validated = validatePayload(payload)
-    logger.info('Slice job started', { source: validated.sourcePdfPath, mode: validated.mode })
+    logger.info('Slice job started', { source: validated.sourceFilePath, mode: validated.mode })
     const win = services.getMainWindow()
     try {
       const meta = await jobExecutionService.execute(validated, (progress) => sendProgress(win, { ...progress, operation: 'slice' }))
@@ -368,16 +368,16 @@ function registerJobHandlers(services: Services) {
     }
   })
 
-  ipcMain.handle('open-source-pdf', async (_event, jobId: string) => {
+  ipcMain.handle('open-source-file', async (_event, jobId: string) => {
     const meta = await jobRepository.getJobDetail(jobId)
     if (!meta) throw new Error(`Job ${jobId} not found`)
 
-    const pdfPath = meta.copiedPdfPath || meta.sourcePdfPath
+    const filePath = meta.copiedSourcePath || meta.sourceFilePath
     const baseDir = settingsService.load().baseDir
-    if (!isPathWithinBaseDir(pdfPath, baseDir)) {
+    if (!isPathWithinBaseDir(filePath, baseDir)) {
       throw new Error('Path is outside allowed directory')
     }
-    await shell.openPath(pdfPath)
+    await shell.openPath(filePath)
   })
 
   ipcMain.handle('delete-job', async (_event, jobId: string) => {
@@ -386,9 +386,9 @@ function registerJobHandlers(services: Services) {
     return result
   })
 
-  ipcMain.handle('delete-jobs-by-pdf', async (_event, sourcePdfPath: string) => {
-    const count = await jobRepository.deleteJobsByPdf(sourcePdfPath)
-    logger.info('Jobs deleted by PDF', { sourcePdfPath, count })
+  ipcMain.handle('delete-jobs-by-source', async (_event, sourceFilePath: string) => {
+    const count = await jobRepository.deleteJobsBySource(sourceFilePath)
+    logger.info('Jobs deleted by source', { sourceFilePath, count })
     return count
   })
 
@@ -401,17 +401,17 @@ function registerJobHandlers(services: Services) {
   return state
 }
 
-function registerPdfHandlers(services: Services) {
-  const { pdfService, logger } = services
+function registerSourceHandlers(services: Services) {
+  const { sourceService, logger } = services
 
-  ipcMain.handle('get-pdf-page-dimensions', async (_event, pdfPath: string) => {
-    if (typeof pdfPath !== 'string' || !pdfPath) throw new Error('Invalid path')
-    if (!pdfPath.toLowerCase().endsWith('.pdf')) throw new Error('Not a PDF file')
+  ipcMain.handle('get-source-dimensions', async (_event, filePath: string) => {
+    if (typeof filePath !== 'string' || !filePath) throw new Error('Invalid path')
+    if (!isSupportedFile(filePath)) throw new Error('Unsupported file type')
     try {
-      return await pdfService.getPageDimensions(pdfPath)
+      return await sourceService.getPageDimensions(filePath)
     } catch (err) {
-      logger.error('Failed to get PDF page dimensions', err)
-      throw new Error(`Failed to get PDF page dimensions: ${toErrorMessage(err)}`)
+      logger.error('Failed to get source dimensions', err)
+      throw new Error(`Failed to get source dimensions: ${toErrorMessage(err)}`)
     }
   })
 }
@@ -436,7 +436,7 @@ export function registerIpcHandlers(services: Services): IpcState {
   registerPresetImportExportHandlers(services)
   const jobState = registerJobHandlers(services)
   registerExportHandlers(services)
-  registerPdfHandlers(services)
+  registerSourceHandlers(services)
   registerRendererLogHandler(services)
   return { isJobRunning: () => jobState.isSliceRunning }
 }

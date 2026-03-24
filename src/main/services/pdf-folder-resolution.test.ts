@@ -25,7 +25,7 @@ function setupJobFolder(
   baseDir: string,
   folderName: string,
   versionId: string,
-  sourcePdfPath: string,
+  sourceFilePath: string,
   sourcePdfContent?: Buffer
 ): JobMeta {
   const jobDir = join(baseDir, 'jobs', folderName)
@@ -37,7 +37,7 @@ function setupJobFolder(
 
   // Copy PDF to source/
   if (sourcePdfContent) {
-    const pdfBasename = sourcePdfPath.split('/').pop()!
+    const pdfBasename = sourceFilePath.split('/').pop()!
     writeFileSync(join(sourceDir, pdfBasename), sourcePdfContent)
   }
 
@@ -45,8 +45,8 @@ function setupJobFolder(
     id: `${folderName}_${versionId}`,
     title: folderName,
     prefix: 'some_prefix',
-    sourcePdfPath,
-    copiedPdfPath: join(sourceDir, sourcePdfPath.split('/').pop()!),
+    sourceFilePath,
+    copiedSourcePath: join(sourceDir, sourceFilePath.split('/').pop()!),
     createdAt: new Date().toISOString(),
     mode: 'fixed',
     pageCount: 1,
@@ -76,35 +76,35 @@ describe('PDF Folder Resolution', () => {
     rmSync(testDir, { recursive: true, force: true })
   })
 
-  describe('sanitizePdfFolderName', () => {
+  describe('sanitizeSourceFolderName', () => {
     // S6. 특수문자 파일명
     it('S6: should sanitize PDF path to folder name', () => {
-      expect(fileService.sanitizePdfFolderName('/path/to/episode_01.pdf')).toBe('episode_01')
-      expect(fileService.sanitizePdfFolderName('/path/to/My Webtoon!.pdf')).toBe('My_Webtoon')
-      expect(fileService.sanitizePdfFolderName('C:\\Users\\test\\웹툰_1화.pdf')).toBe('웹툰_1화')
+      expect(fileService.sanitizeSourceFolderName('/path/to/episode_01.pdf')).toBe('episode_01')
+      expect(fileService.sanitizeSourceFolderName('/path/to/My Webtoon!.pdf')).toBe('My_Webtoon')
+      expect(fileService.sanitizeSourceFolderName('C:\\Users\\test\\웹툰_1화.pdf')).toBe('웹툰_1화')
     })
 
     // E1. sanitize 후 빈 문자열
     it('E1: should fallback to "untitled" when name becomes empty after sanitize', () => {
-      expect(fileService.sanitizePdfFolderName('/path/to/.pdf')).toBe('untitled')
-      expect(fileService.sanitizePdfFolderName('/path/to/!!!.pdf')).toBe('untitled')
+      expect(fileService.sanitizeSourceFolderName('/path/to/.pdf')).toBe('untitled')
+      expect(fileService.sanitizeSourceFolderName('/path/to/!!!.pdf')).toBe('untitled')
     })
 
     // E5. 매우 긴 파일명
     it('E5: should truncate very long filenames', () => {
       const longName = 'a'.repeat(300) + '.pdf'
-      const result = fileService.sanitizePdfFolderName(`/path/to/${longName}`)
+      const result = fileService.sanitizeSourceFolderName(`/path/to/${longName}`)
       expect(result.length).toBeLessThanOrEqual(100)
     })
 
     // E6. 한글/CJK 파일명
     it('E6: should preserve Korean/CJK characters', () => {
-      expect(fileService.sanitizePdfFolderName('/path/to/웹툰_에피소드.pdf')).toBe('웹툰_에피소드')
-      expect(fileService.sanitizePdfFolderName('/path/to/漫画_第1話.pdf')).toBe('漫画_第1話')
+      expect(fileService.sanitizeSourceFolderName('/path/to/웹툰_에피소드.pdf')).toBe('웹툰_에피소드')
+      expect(fileService.sanitizeSourceFolderName('/path/to/漫画_第1話.pdf')).toBe('漫画_第1話')
     })
   })
 
-  describe('comparePdfFiles', () => {
+  describe('compareSourceFiles', () => {
     it('should return true for identical files', async () => {
       const content = Buffer.alloc(1024, 'hello')
       const pathA = join(testDir, 'a.pdf')
@@ -112,7 +112,7 @@ describe('PDF Folder Resolution', () => {
       writeFileSync(pathA, content)
       writeFileSync(pathB, content)
 
-      expect(await fileService.comparePdfFiles(pathA, pathB)).toBe(true)
+      expect(await fileService.compareSourceFiles(pathA, pathB)).toBe(true)
     })
 
     it('should return false for files with different sizes', async () => {
@@ -121,7 +121,7 @@ describe('PDF Folder Resolution', () => {
       writeFileSync(pathA, Buffer.alloc(1024, 'x'))
       writeFileSync(pathB, Buffer.alloc(2048, 'x'))
 
-      expect(await fileService.comparePdfFiles(pathA, pathB)).toBe(false)
+      expect(await fileService.compareSourceFiles(pathA, pathB)).toBe(false)
     })
 
     // S7. 크기 같고 내용 다른 PDF
@@ -133,14 +133,14 @@ describe('PDF Folder Resolution', () => {
       writeFileSync(pathA, bufA)
       writeFileSync(pathB, bufB)
 
-      expect(await fileService.comparePdfFiles(pathA, pathB)).toBe(false)
+      expect(await fileService.compareSourceFiles(pathA, pathB)).toBe(false)
     })
 
     it('should return false when one file does not exist', async () => {
       const pathA = join(testDir, 'a.pdf')
       writeFileSync(pathA, 'content')
 
-      expect(await fileService.comparePdfFiles(pathA, join(testDir, 'nonexistent.pdf'))).toBe(false)
+      expect(await fileService.compareSourceFiles(pathA, join(testDir, 'nonexistent.pdf'))).toBe(false)
     })
 
     it('should handle large files by comparing partial hash (head + tail)', async () => {
@@ -155,18 +155,18 @@ describe('PDF Folder Resolution', () => {
       writeFileSync(pathA, bufA)
       writeFileSync(pathB, bufB)
 
-      expect(await fileService.comparePdfFiles(pathA, pathB)).toBe(false)
+      expect(await fileService.compareSourceFiles(pathA, pathB)).toBe(false)
     })
   })
 
-  describe('resolveFolderForPdf', () => {
+  describe('resolveFolderForSource', () => {
     // S1. 기본 — PDF 파일명으로 폴더 생성
     it('S1: should return PDF filename as folder name when no existing folder', async () => {
       const pdfPath = join(testDir, 'episode_01.pdf')
       createPdf(pdfPath, 'pdf-content')
 
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPath),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPath),
         pdfPath
       )
       expect(folderName).toBe('episode_01')
@@ -181,8 +181,8 @@ describe('PDF Folder Resolution', () => {
       // Setup existing job with the same PDF
       setupJobFolder(testDir, 'episode_01', 'v1', pdfPath, pdfContent)
 
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPath),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPath),
         pdfPath
       )
       expect(folderName).toBe('episode_01')
@@ -198,8 +198,8 @@ describe('PDF Folder Resolution', () => {
       setupJobFolder(testDir, 'episode_01', 'v1', pdfPath, pdfContent)
 
       // New request with prefix 'white' — should still resolve to same folder
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPath),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPath),
         pdfPath
       )
       expect(folderName).toBe('episode_01')
@@ -222,8 +222,8 @@ describe('PDF Folder Resolution', () => {
       const contentB = Buffer.from('content-B-different')
       writeFileSync(pdfPathB, contentB)
 
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPathB),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPathB),
         pdfPathB
       )
       expect(folderName).toBe('episode_01_2')
@@ -244,8 +244,8 @@ describe('PDF Folder Resolution', () => {
       mkdirSync(join(testDir, 'desktop'), { recursive: true })
       writeFileSync(pdfPathB, content)
 
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPathB),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPathB),
         pdfPathB
       )
       expect(folderName).toBe('episode_01')
@@ -276,8 +276,8 @@ describe('PDF Folder Resolution', () => {
       setupJobFolder(testDir, 'ep_2', 'v1', pdfB, contentB)
 
       // Third PDF should get ep_3
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfC),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfC),
         pdfC
       )
       expect(folderName).toBe('ep_3')
@@ -297,15 +297,15 @@ describe('PDF Folder Resolution', () => {
 
       const meta: JobMeta = {
         id: 'ep1_v1', title: 'episode_01', prefix: 'test',
-        sourcePdfPath: pdfPath, copiedPdfPath: join(jobDir, 'source', 'episode_01.pdf'),
+        sourceFilePath: pdfPath, copiedSourcePath: join(jobDir, 'source', 'episode_01.pdf'),
         createdAt: new Date().toISOString(), mode: 'fixed',
         pageCount: 1, sliceCount: 1, versionPath, options: {}, files: []
       }
       writeFileSync(join(versionPath, 'meta.json'), JSON.stringify(meta))
 
       // Should reuse folder (source PDF missing = treat as available)
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfPath),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfPath),
         pdfPath
       )
       expect(folderName).toBe('episode_01')
@@ -327,8 +327,8 @@ describe('PDF Folder Resolution', () => {
       mkdirSync(join(testDir, 'new'), { recursive: true })
       writeFileSync(pdfNew, contentNew)
 
-      const folderName = await repo.resolveFolderForPdf(
-        fileService.sanitizePdfFolderName(pdfNew),
+      const folderName = await repo.resolveFolderForSource(
+        fileService.sanitizeSourceFolderName(pdfNew),
         pdfNew
       )
       expect(folderName).toBe('episode_01_2_2')

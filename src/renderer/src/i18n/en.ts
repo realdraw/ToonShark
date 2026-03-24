@@ -12,21 +12,21 @@ export interface TranslationKeys {
   appTitle: string
   openFolder: string
   settings: string
-  openPdf: string
+  openFile: string
   recentJobs: string
   noJobsTitle: string
   noJobsDesc: string
-  dropPdfHere: string
+  dropFileHere: string
   runs: (n: number) => string
   slices: (n: number) => string
   preview: string
   fixed: string
   auto: string
 
-  openPdfs: string
+  openFiles: string
 
   // WorkspacePage
-  addPdf: string
+  addFile: string
   home: string
   filePrefix: string
   filePrefixDesc: string
@@ -54,7 +54,7 @@ export interface TranslationKeys {
   noResultsTitle: string
   noResultsDesc: string
   runCount: (n: number) => string
-  sourcePdf: string
+  sourceFile: string
   folder: string
   detail: string
 
@@ -65,8 +65,8 @@ export interface TranslationKeys {
   mode: string
   fixedInterval: string
   prefixLabel: string
-  sourcePdfLabel: string
-  openSourcePdf: string
+  sourceFileLabel: string
+  openSourceFile: string
 
   // SliceDetailPage
   sliceNotFound: string
@@ -117,9 +117,9 @@ export interface TranslationKeys {
   storageWarning: (size: string) => string
   storageWarningAction: string
   deleteAll: string
-  deletePdf: string
+  deleteSource: string
   confirmDeleteAll: string
-  confirmDeletePdf: (name: string) => string
+  confirmDeleteSource: (name: string) => string
   confirmDeleteJob: string
 
   // Device Presets
@@ -214,24 +214,24 @@ const en: TranslationKeys = {
   appTitle: 'ToonShark',
   openFolder: 'Open Folder',
   settings: 'Settings',
-  openPdf: 'Open PDF',
+  openFile: 'Open File',
   recentJobs: 'Recent Jobs',
   noJobsTitle: 'No jobs yet',
-  noJobsDesc: 'Open a PDF to get started',
-  dropPdfHere: 'Drop PDF files here',
+  noJobsDesc: 'Open a file to get started',
+  dropFileHere: 'Drop PDF or image files here',
   runs: (n: number) => `${n} run${n !== 1 ? 's' : ''}`,
   slices: (n: number) => `${n} slice${n !== 1 ? 's' : ''}`,
   preview: 'Preview',
   fixed: 'Fixed',
   auto: 'Auto',
 
-  openPdfs: 'Open PDFs',
+  openFiles: 'Open Files',
 
   // WorkspacePage
-  addPdf: '+ Add PDF',
+  addFile: '+ Add File',
   home: 'Home',
   filePrefix: 'File Prefix',
-  filePrefixDesc: 'Name prepended to output files. Auto-generated from PDF filename. Korean characters supported.',
+  filePrefixDesc: 'Name prepended to output files. Auto-generated from source filename. Korean characters supported.',
   sliceMode: 'Slice Mode',
   sliceModeDesc: 'Auto: Automatically detects cut boundaries by analyzing white margins. Fixed: Mechanically splits at a fixed height.',
   whiteThreshold: 'Margin Color Sensitivity',
@@ -256,7 +256,7 @@ const en: TranslationKeys = {
   noResultsTitle: 'No results',
   noResultsDesc: 'Adjust options and click Run',
   runCount: (n: number) => `(${n} run${n !== 1 ? 's' : ''})`,
-  sourcePdf: 'Source PDF',
+  sourceFile: 'Source File',
   folder: 'Folder',
   detail: 'Detail',
 
@@ -267,8 +267,8 @@ const en: TranslationKeys = {
   mode: 'Mode',
   fixedInterval: 'Fixed interval',
   prefixLabel: 'Prefix',
-  sourcePdfLabel: 'Source PDF',
-  openSourcePdf: 'Open Source PDF',
+  sourceFileLabel: 'Source File',
+  openSourceFile: 'Open Source File',
 
   // SliceDetailPage
   sliceNotFound: 'Slice not found',
@@ -319,9 +319,9 @@ const en: TranslationKeys = {
   storageWarning: (size: string) => `Storage usage is ${size}. Consider cleaning up old jobs to free disk space.`,
   storageWarningAction: 'Clean Up',
   deleteAll: 'Delete All',
-  deletePdf: 'Delete',
+  deleteSource: 'Delete',
   confirmDeleteAll: 'Are you sure you want to delete all job history? This will permanently remove all files.',
-  confirmDeletePdf: (name: string) => `Are you sure you want to delete all history for "${name}"? This will permanently remove all related files.`,
+  confirmDeleteSource: (name: string) => `Are you sure you want to delete all history for "${name}"? This will permanently remove all related files.`,
   confirmDeleteJob: 'Are you sure you want to delete this job? This will permanently remove all related files.',
 
   // Device Presets
@@ -387,7 +387,7 @@ const en: TranslationKeys = {
   },
 
   // Progress steps
-  progressCopyPdf: 'Copying PDF...',
+  progressCopyPdf: 'Copying source file...',
   progressCountPages: 'Counting pages...',
   progressRenderPages: 'Rendering pages...',
   progressSlicing: 'Slicing images...',

@@ -3,8 +3,9 @@ import {useNavigate} from 'react-router-dom'
 import {useJobStore} from '../stores/jobStore'
 import {useTranslation} from '../i18n'
 import type {JobMeta} from '@shared/types'
-import {extractPdfName, formatBytes} from '@shared/utils'
-import {usePdfDrop} from '../hooks/usePdfDrop'
+import {extractSourceName, formatBytes} from '@shared/utils'
+import {getFileExtension} from '@shared/constants'
+import {useFileDrop} from '../hooks/useFileDrop'
 import logo from '../assets/logo.svg'
 import {useMergedJobs} from '../hooks/useMergedJobs'
 import {useStorageInfo} from '../hooks/useStorageInfo'
@@ -16,9 +17,9 @@ const STORAGE_WARNING_THRESHOLD = 10 * 1024 * 1024 * 1024 // 10GB
 export default function HomePage() {
   const navigate = useNavigate()
   const t = useTranslation()
-  const { pdfList, sessionResults, recentJobs, isLoading, isRunning, runningPdfPath, fetchRecentJobs, addPdf, addPdfByPath, setActivePdf, removePdf } = useJobStore()
+  const { fileList, sessionResults, recentJobs, isLoading, isRunning, runningFilePath, fetchRecentJobs, addFile, addFileByPath, setActiveFile, removeFile } = useJobStore()
   const { storageInfo, refreshStorage } = useStorageInfo()
-  const { confirmDeleteJobsByPdf, confirmDeleteAll } = useDeleteActions(t, refreshStorage)
+  const { confirmDeleteJobsBySource, confirmDeleteAll } = useDeleteActions(t, refreshStorage)
 
   useEffect(() => {
     fetchRecentJobs()
@@ -26,25 +27,25 @@ export default function HomePage() {
 
   const allJobs = useMergedJobs(sessionResults, recentJobs)
 
-  // Group jobs by source PDF
-  const groupedByPdf = useMemo(() => {
+  // Group jobs by source file
+  const groupedBySource = useMemo(() => {
     const map = new Map<string, { name: string; jobs: JobMeta[] }>()
     for (const job of allJobs) {
-      const key = job.sourcePdfPath
+      const key = job.sourceFilePath
       if (!map.has(key)) {
-        map.set(key, { name: extractPdfName(key), jobs: [] })
+        map.set(key, { name: extractSourceName(key), jobs: [] })
       }
       map.get(key)!.jobs.push(job)
     }
     return Array.from(map.entries())
   }, [allJobs])
 
-  // Map sourcePdfPath -> size from storage info
-  const pdfSizeMap = useMemo(() => {
+  // Map sourceFilePath -> size from storage info
+  const sourceSizeMap = useMemo(() => {
     const map = new Map<string, number>()
     if (storageInfo) {
-      for (const pdf of storageInfo.pdfs) {
-        map.set(pdf.sourcePdfPath, pdf.size)
+      for (const src of storageInfo.sources) {
+        map.set(src.sourceFilePath, src.size)
       }
     }
     return map
@@ -54,8 +55,8 @@ export default function HomePage() {
   const jobSizeMap = useMemo(() => {
     const map = new Map<string, number>()
     if (storageInfo) {
-      for (const pdf of storageInfo.pdfs) {
-        for (const job of pdf.jobs) {
+      for (const src of storageInfo.sources) {
+        for (const job of src.jobs) {
           map.set(job.jobId, job.size)
         }
       }
@@ -63,17 +64,17 @@ export default function HomePage() {
     return map
   }, [storageInfo])
 
-  const handleSelectPdf = async () => {
-    const prevCount = useJobStore.getState().pdfList.length
-    await addPdf()
-    const { pdfList } = useJobStore.getState()
-    if (pdfList.length > prevCount) {
+  const handleSelectFile = async () => {
+    const prevCount = useJobStore.getState().fileList.length
+    await addFile()
+    const { fileList } = useJobStore.getState()
+    if (fileList.length > prevCount) {
       navigate('/workspace')
     }
   }
 
-  const handleOpenFromHistory = (pdfPath: string) => {
-    addPdfByPath(pdfPath)
+  const handleOpenFromHistory = (filePath: string) => {
+    addFileByPath(filePath)
     navigate('/workspace')
   }
 
@@ -86,12 +87,15 @@ export default function HomePage() {
     }
   }
 
-  const handlePdfDrop = useCallback((paths: string[]) => {
-    for (const path of paths) addPdfByPath(path)
+  const handleFileDrop = useCallback((paths: string[]) => {
+    for (const path of paths) addFileByPath(path)
     navigate('/workspace')
-  }, [addPdfByPath, navigate])
+  }, [addFileByPath, navigate])
 
-  const { isDragging, dropProps } = usePdfDrop({ onDrop: handlePdfDrop })
+  const { isDragging, dropProps } = useFileDrop({ onDrop: handleFileDrop })
+
+  /** Format extension badge label */
+  const extBadge = (filePath: string) => getFileExtension(filePath).replace('.', '').toUpperCase() || 'FILE'
 
   return (
     <div
@@ -118,10 +122,10 @@ export default function HomePage() {
             {t.settings}
           </button>
           <button
-            onClick={handleSelectPdf}
+            onClick={handleSelectFile}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-medium transition text-white"
           >
-            {t.openPdf}
+            {t.openFile}
           </button>
         </div>
       </div>
@@ -140,30 +144,30 @@ export default function HomePage() {
         </div>
       )}
 
-      {pdfList.length > 0 && (
+      {fileList.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-secondary mb-3">{t.openPdfs}</h2>
+          <h2 className="text-lg font-semibold text-secondary mb-3">{t.openFiles}</h2>
           <div className="flex flex-wrap gap-2">
-            {pdfList.map((pdf) => (
+            {fileList.map((file) => (
               <button
-                key={pdf.path}
+                key={file.path}
                 className="group flex items-center gap-2 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition cursor-pointer"
                 onClick={() => {
-                  setActivePdf(pdf.path)
+                  setActiveFile(file.path)
                   navigate('/workspace')
                 }}
               >
-                {isRunning && runningPdfPath === pdf.path ? (
+                {isRunning && runningFilePath === file.path ? (
                   <span className="flex-shrink-0 w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span className="text-xs text-blue-400 font-medium">PDF</span>
+                  <span className="text-xs text-blue-400 font-medium">{extBadge(file.path)}</span>
                 )}
-                <span className="text-sm text-primary truncate max-w-[200px]">{pdf.name}</span>
+                <span className="text-sm text-primary truncate max-w-[200px]">{file.name}</span>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
-                    removePdf(pdf.path)
+                    removeFile(file.path)
                   }}
                   className="opacity-0 group-hover:opacity-100 text-muted hover:text-primary transition text-xs ml-1 bg-transparent border-none p-0 cursor-pointer"
                 >
@@ -198,46 +202,46 @@ export default function HomePage() {
 
       {!isLoading && allJobs.length === 0 && (
         <div className="text-center py-20 text-muted border-2 border-dashed border-border-subtle rounded-xl bg-surface-dim hover:border-blue-500/50 hover:bg-blue-600/5 transition-colors cursor-default">
-          <div className="text-4xl mb-4 opacity-40">PDF</div>
+          <div className="text-4xl mb-4 opacity-40">PDF / JPG</div>
           <p className="text-lg mb-2">{t.noJobsTitle}</p>
           <p className="text-sm mb-4">{t.noJobsDesc}</p>
-          <p className="text-xs text-faint">{t.dropPdfHere}</p>
+          <p className="text-xs text-faint">{t.dropFileHere}</p>
         </div>
       )}
 
       <div className="space-y-6">
         {!isLoading && allJobs.length > 0 && (
           <div className="text-center py-4 border-2 border-dashed border-border rounded-lg text-faint text-xs hover:border-blue-500/40 hover:text-muted transition-colors cursor-default">
-            {t.dropPdfHere}
+            {t.dropFileHere}
           </div>
         )}
-        {groupedByPdf.map(([pdfPath, group]) => (
-          <div key={pdfPath} className="bg-surface-t rounded-lg border border-border p-4">
-            {/* PDF Header */}
+        {groupedBySource.map(([filePath, group]) => (
+          <div key={filePath} className="bg-surface-t rounded-lg border border-border p-4">
+            {/* Source Header */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="bg-blue-600/20 text-blue-400 px-2 py-0.5 rounded text-xs font-medium">
-                  PDF
+                  {extBadge(filePath)}
                 </span>
                 <h3 className="font-medium text-primary">{group.name}</h3>
                 <span className="text-xs text-muted">
                   {t.runs(group.jobs.length)}
                 </span>
-                {pdfSizeMap.has(pdfPath) && (
+                {sourceSizeMap.has(filePath) && (
                   <span className="text-xs text-muted">
-                    · {formatBytes(pdfSizeMap.get(pdfPath)!)}
+                    · {formatBytes(sourceSizeMap.get(filePath)!)}
                   </span>
                 )}
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => confirmDeleteJobsByPdf(pdfPath, group.name)}
+                  onClick={() => confirmDeleteJobsBySource(filePath, group.name)}
                   className="px-3 py-1.5 bg-error-bg hover:bg-red-700 text-error-text hover:text-white rounded text-sm transition"
                 >
-                  {t.deletePdf}
+                  {t.deleteSource}
                 </button>
                 <button
-                  onClick={() => handleOpenFromHistory(pdfPath)}
+                  onClick={() => handleOpenFromHistory(filePath)}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded text-sm font-medium transition text-white"
                 >
                   {t.open}
@@ -245,7 +249,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Job list under this PDF */}
+            {/* Job list under this source */}
             <div className="space-y-2">
               {group.jobs.map((job) => (
                 <button

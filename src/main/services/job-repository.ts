@@ -1,7 +1,8 @@
 import {existsSync} from 'fs'
 import {readdir, readFile, rm, stat, writeFile} from 'fs/promises'
 import {basename, dirname, join} from 'path'
-import type {JobMeta, StorageInfo, StorageJobInfo, StoragePdfInfo} from '@shared/types'
+import type {JobMeta, StorageInfo, StorageJobInfo, StorageSourceInfo} from '@shared/types'
+import {isSupportedFile, stripExtension} from '@shared/constants/supported-formats'
 import {toErrorMessage} from '@shared/utils'
 import type {FileService} from './file.service'
 import type {Logger} from './logger.service'
@@ -91,7 +92,17 @@ export class JobRepository {
     if (!existsSync(metaPath)) return null
     try {
       const raw = await readFile(metaPath, 'utf-8')
-      return JSON.parse(raw) as JobMeta
+      const meta = JSON.parse(raw) as JobMeta & { sourcePdfPath?: string; copiedPdfPath?: string }
+      // Migrate legacy field names from older meta.json files
+      if (!meta.sourceFilePath && meta.sourcePdfPath) {
+        meta.sourceFilePath = meta.sourcePdfPath
+        delete meta.sourcePdfPath
+      }
+      if (!meta.copiedSourcePath && meta.copiedPdfPath) {
+        meta.copiedSourcePath = meta.copiedPdfPath
+        delete meta.copiedPdfPath
+      }
+      return meta
     } catch {
       return null
     }
@@ -151,20 +162,20 @@ export class JobRepository {
     return sourceOnly
   }
 
-  private async getSourceOnlyPdfInfo(jobPath: string): Promise<StoragePdfInfo | null> {
+  private async getSourceOnlyInfo(jobPath: string): Promise<StorageSourceInfo | null> {
     const sourceDir = join(jobPath, 'source')
     if (!existsSync(sourceDir)) return null
 
     try {
       const entries = await readdir(sourceDir)
-      const pdfName = entries.find((entry) => entry.toLowerCase().endsWith('.pdf'))
-      if (!pdfName) return null
+      const sourceFileName = entries.find((entry) => isSupportedFile(entry))
+      if (!sourceFileName) return null
 
-      const sourcePdfPath = join(sourceDir, pdfName)
+      const sourceFilePath = join(sourceDir, sourceFileName)
       const size = await this.fileService.getDirSize(jobPath)
       return {
-        sourcePdfPath,
-        name: basename(pdfName).replace(/\.pdf$/i, '') || 'untitled',
+        sourceFilePath,
+        name: stripExtension(basename(sourceFileName)) || 'untitled',
         size,
         jobs: []
       }
@@ -219,8 +230,8 @@ export class JobRepository {
     return null
   }
 
-  async resolveFolderForPdf(sanitizedPdfName: string, sourcePdfPath: string): Promise<string> {
-    let candidate = sanitizedPdfName
+  async resolveFolderForSource(sanitizedName: string, sourceFilePath: string): Promise<string> {
+    let candidate = sanitizedName
     let suffix = 1
 
     while (true) {
@@ -229,38 +240,38 @@ export class JobRepository {
         return candidate
       }
 
-      // Check source/ for existing PDF
+      // Check source/ for existing file
       const sourceDir = join(candidateDir, 'source')
       if (!existsSync(sourceDir)) {
         return candidate
       }
 
-      // Find existing PDF in source/
-      let existingPdfPath: string | null = null
+      // Find existing source file in source/
+      let existingPath: string | null = null
       try {
         const sourceFiles = await readdir(sourceDir)
-        const pdfFile = sourceFiles.find((f) => f.toLowerCase().endsWith('.pdf'))
-        if (pdfFile) {
-          existingPdfPath = join(sourceDir, pdfFile)
+        const found = sourceFiles.find((f) => isSupportedFile(f))
+        if (found) {
+          existingPath = join(sourceDir, found)
         }
       } catch {
         return candidate
       }
 
-      if (!existingPdfPath) {
-        // source/ exists but no PDF (manually deleted) — reuse folder
+      if (!existingPath) {
+        // source/ exists but no source file (manually deleted) — reuse folder
         return candidate
       }
 
       // Compare files
-      const isSame = await this.fileService.comparePdfFiles(existingPdfPath, sourcePdfPath)
+      const isSame = await this.fileService.compareSourceFiles(existingPath, sourceFilePath)
       if (isSame) {
         return candidate
       }
 
-      // Different PDF — try next suffix
+      // Different file — try next suffix
       suffix++
-      candidate = `${sanitizedPdfName}_${suffix}`
+      candidate = `${sanitizedName}_${suffix}`
     }
   }
 
@@ -272,7 +283,7 @@ export class JobRepository {
 
   async getStorageInfo(): Promise<StorageInfo> {
     const jobs = await this.getAllMetas()
-    const pdfMap = new Map<string, StoragePdfInfo>()
+    const sourceMap = new Map<string, StorageSourceInfo>()
     let totalSize = 0
 
     for (const job of jobs) {
@@ -286,32 +297,32 @@ export class JobRepository {
         size: jobSize
       }
 
-      const key = job.sourcePdfPath
-      if (!pdfMap.has(key)) {
-        const name = basename(key).replace(/\.pdf$/i, '') || 'untitled'
-        pdfMap.set(key, { sourcePdfPath: key, name, size: 0, jobs: [] })
+      const key = job.sourceFilePath
+      if (!sourceMap.has(key)) {
+        const name = stripExtension(basename(key)) || 'untitled'
+        sourceMap.set(key, { sourceFilePath: key, name, size: 0, jobs: [] })
       }
-      const pdf = pdfMap.get(key)!
-      pdf.size += jobSize
-      pdf.jobs.push(jobInfo)
+      const source = sourceMap.get(key)!
+      source.size += jobSize
+      source.jobs.push(jobInfo)
     }
 
     const sourceOnlyFolders = await this.getSourceOnlyJobFolders()
     for (const jobPath of sourceOnlyFolders) {
-      const info = await this.getSourceOnlyPdfInfo(jobPath)
+      const info = await this.getSourceOnlyInfo(jobPath)
       if (!info) continue
 
       totalSize += info.size
-      const existing = pdfMap.get(info.sourcePdfPath)
+      const existing = sourceMap.get(info.sourceFilePath)
       if (existing) {
         existing.size += info.size
       } else {
-        pdfMap.set(info.sourcePdfPath, info)
+        sourceMap.set(info.sourceFilePath, info)
       }
     }
 
-    const pdfs = Array.from(pdfMap.values()).sort((a, b) => b.size - a.size)
-    return { totalSize, pdfs }
+    const sources = Array.from(sourceMap.values()).sort((a, b) => b.size - a.size)
+    return { totalSize, sources }
   }
 
   private async removeVersions(jobs: JobMeta[]): Promise<number> {
@@ -335,17 +346,17 @@ export class JobRepository {
     return (await this.removeVersions([meta])) > 0
   }
 
-  async deleteJobsByPdf(sourcePdfPath: string): Promise<number> {
-    const jobs = (await this.getAllMetas()).filter((j) => j.sourcePdfPath === sourcePdfPath)
+  async deleteJobsBySource(sourceFilePath: string): Promise<number> {
+    const jobs = (await this.getAllMetas()).filter((j) => j.sourceFilePath === sourceFilePath)
     const deletedVersions = await this.removeVersions(jobs)
 
-    // Clean up source-only orphan folders that match the given PDF by filename
-    const pdfFileName = basename(sourcePdfPath)
+    // Clean up source-only orphan folders that match the given file by filename
+    const sourceFileName = basename(sourceFilePath)
     const sourceOnlyFolders = await this.getSourceOnlyJobFolders()
     let deletedSourceCaches = 0
     for (const jobPath of sourceOnlyFolders) {
       const sourceDir = join(jobPath, 'source')
-      if (existsSync(join(sourceDir, pdfFileName))) {
+      if (existsSync(join(sourceDir, sourceFileName))) {
         try {
           await rm(jobPath, { recursive: true, force: true })
           deletedSourceCaches++

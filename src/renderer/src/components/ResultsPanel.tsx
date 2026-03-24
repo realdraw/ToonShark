@@ -1,5 +1,5 @@
 import type {NavigateFunction} from 'react-router-dom'
-import type {JobMeta, StoragePdfInfo} from '@shared/types'
+import type {JobMeta, StorageSourceInfo} from '@shared/types'
 import type {TranslationKeys} from '../i18n/en'
 import {JobResultCard} from './JobResultCard'
 import {formatBytes} from '@shared/utils'
@@ -7,7 +7,7 @@ import {formatBytes} from '@shared/utils'
 type ResultsPanelProps = {
   activeJobs: JobMeta[]
   activePdfName: string | undefined
-  activePdfStorage: StoragePdfInfo | null
+  activePdfStorage: StorageSourceInfo | null
   navigate: NavigateFunction
   onDeleteJob: (jobId: string) => Promise<void>
   t: TranslationKeys
@@ -30,7 +30,6 @@ export function ResultsPanel(props: ResultsPanelProps) {
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <h3 className="text-sm font-semibold text-secondary mb-3 flex items-center gap-2">
-        <span className="bg-elevated px-2 py-0.5 rounded text-xs">PDF</span>
         {activePdfName}
         <span className="text-muted text-xs">{t.runCount(activeJobs.length)}</span>
         {activePdfStorage && (

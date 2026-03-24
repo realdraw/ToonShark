@@ -1,5 +1,9 @@
 import {readFileSync} from 'fs'
 import {createCanvas} from '@napi-rs/canvas'
+import type {RawPageResult, SourceRenderer} from './source-renderer'
+
+// Re-export for backward compatibility
+export type { RawPageResult } from './source-renderer'
 
 // pdfjs-dist v5 legacy build for Node.js
 // Uses built-in NodeCanvasFactory which requires @napi-rs/canvas
@@ -18,12 +22,6 @@ async function openDoc(pdfPath: string) {
   const pdfjsLib = await getPdfjs()
   const data = new Uint8Array(readFileSync(pdfPath))
   return pdfjsLib.getDocument({ data, verbosity: 0 }).promise
-}
-
-export type RawPageResult = {
-  buffer: Buffer
-  width: number
-  height: number
 }
 
 async function renderPageRaw(
@@ -51,7 +49,7 @@ async function renderPageRaw(
   return { buffer, width, height }
 }
 
-export class PdfService {
+export class PdfService implements SourceRenderer {
   async getPageDimensions(pdfPath: string): Promise<{ width: number; height: number }> {
     const doc = await openDoc(pdfPath)
     try {
