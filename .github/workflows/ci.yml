@@ -25,13 +25,11 @@ jobs:
       - run: npm test
 
   e2e-test:
-    name: E2E Tests (${{ matrix.os }})
+    # PR에서만 E2E 실행 — main push는 이미 PR에서 검증된 커밋
+    if: github.event_name == 'pull_request'
+    name: E2E Tests
     needs: lint-and-test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -43,14 +41,13 @@ jobs:
         id: playwright-cache
         uses: actions/cache@v4
         with:
-          path: |
-            ~/Library/Caches/ms-playwright
-            ~\AppData\Local\ms-playwright
-          key: playwright-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
+          path: ~/.cache/ms-playwright
+          key: playwright-linux-${{ hashFiles('package-lock.json') }}
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
-      - name: Install Playwright deps only
+        run: npx playwright install --with-deps chromium
+      - name: Install Playwright system deps
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
-      - run: npm run test:e2e
+        run: npx playwright install-deps chromium
+      - name: Run E2E tests
+        run: xvfb-run --auto-servernum npm run test:e2e

@@ -4,7 +4,7 @@ import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
 test('shows empty state when no jobs exist', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'ToonShark' })).toBeVisible()
   await expect(page.getByText(/^No jobs yet$|^작업 내역이 없습니다$/)).toBeVisible()
-  await expect(page.getByText(/^Open a PDF to get started$|^PDF를 열어 시작하세요$/)).toBeVisible()
+  await expect(page.getByText(/^Open a file to get started$|^파일을 열어 시작하세요$/)).toBeVisible()
 })
 
 // PDF 선택 취소 시 홈 화면 유지
@@ -17,7 +17,7 @@ test('cancelling PDF selection stays on home page', async ({ electronApp, page }
     })
   })
 
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
 
   // 홈 화면에 머무는지 확인
   await expect(page.getByRole('heading', { name: 'ToonShark' })).toBeVisible()
@@ -33,7 +33,7 @@ test('workspace shows no results before running a job', async ({ electronApp, pa
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
   // 결과 패널에 빈 상태 메시지 확인
@@ -61,7 +61,7 @@ test('duplicate slice job detection shows toast', async ({ electronApp, page, te
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
   // 첫 번째 실행

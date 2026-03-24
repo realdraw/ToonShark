@@ -16,7 +16,7 @@ async function createJobAndGoHome(
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
 
   await expect(page).toHaveURL(/\/workspace$/)
   // Run 버튼이 활성화될 때까지 대기
@@ -39,7 +39,7 @@ test('deletes a single job from workspace results panel', async ({ electronApp, 
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
   await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
@@ -107,7 +107,7 @@ test('runs multiple slice jobs for the same PDF', async ({ electronApp, page, te
   }, testBaseDir)
 
   await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+  await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
   await expect(page).toHaveURL(/\/workspace$/)
 
   // 첫 번째 작업 (Auto 모드)

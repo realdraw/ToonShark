@@ -29,7 +29,7 @@ base.describe.serial('thumbnail capture', () => {
     }, testBaseDir)
 
     await mockNextOpenDialogPath(electronApp, pdfPath)
-    await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+    await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
     await expect(page).toHaveURL(/\/workspace$/)
 
     await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
@@ -44,7 +44,14 @@ base.describe.serial('thumbnail capture', () => {
   })
 
   base.afterAll(async () => {
-    await electronApp?.close()
+    try {
+      const pid = electronApp?.process()?.pid
+      await Promise.race([
+        electronApp?.close(),
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ])
+      if (pid) try { process.kill(pid, 'SIGKILL') } catch {}
+    } catch {}
     for (let i = 0; i < 5; i++) {
       try { rmSync(testHomeDir, { recursive: true, force: true }); break }
       catch { await new Promise(r => setTimeout(r, 500)) }

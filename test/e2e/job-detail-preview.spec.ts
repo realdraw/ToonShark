@@ -28,7 +28,7 @@ base.describe.serial('job detail preview', () => {
     }, testBaseDir)
 
     await mockNextOpenDialogPath(electronApp, pdfPath)
-    await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+    await page.getByRole('button', { name: /^Open File$|^파일 열기$/ }).click()
     await expect(page).toHaveURL(/\/workspace$/)
 
     await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
@@ -39,7 +39,14 @@ base.describe.serial('job detail preview', () => {
   })
 
   base.afterAll(async () => {
-    await electronApp?.close()
+    try {
+      const pid = electronApp?.process()?.pid
+      await Promise.race([
+        electronApp?.close(),
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ])
+      if (pid) try { process.kill(pid, 'SIGKILL') } catch {}
+    } catch {}
     for (let i = 0; i < 5; i++) {
       try { rmSync(testHomeDir, { recursive: true, force: true }); break }
       catch { await new Promise(r => setTimeout(r, 500)) }
@@ -53,11 +60,11 @@ base.describe.serial('job detail preview', () => {
     await expect(page.getByText(/^Slices$|^슬라이스$/)).toBeVisible()
     await expect(page.getByText(/^Mode$|^모드$/)).toBeVisible()
     await expect(page.getByText(/^Prefix$|^접두사$/)).toBeVisible()
-    await expect(page.getByText(/^Source PDF$|^원본 PDF$/)).toBeVisible()
+    await expect(page.getByText(/^Source File$|^원본 파일$/)).toBeVisible()
 
     await expect(page.getByRole('button', { name: /^Preview$|^미리보기$/ })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Episode Export$|^에피소드 내보내기$/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Open Source PDF$|^원본 PDF 열기$/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Open Source File$|^원본 파일 열기$/ })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Open Folder$|^폴더 열기$/ })).toBeVisible()
 
     await expect(page.getByText(/Slices \(\d+\)|슬라이스 \(\d+\)/)).toBeVisible()

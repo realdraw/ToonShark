@@ -28,7 +28,14 @@ base.describe.serial('settings device presets', () => {
   })
 
   base.afterAll(async () => {
-    await electronApp?.close()
+    try {
+      const pid = electronApp?.process()?.pid
+      await Promise.race([
+        electronApp?.close(),
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ])
+      if (pid) try { process.kill(pid, 'SIGKILL') } catch {}
+    } catch {}
     for (let i = 0; i < 5; i++) {
       try { rmSync(testHomeDir, { recursive: true, force: true }); break }
       catch { await new Promise(r => setTimeout(r, 500)) }

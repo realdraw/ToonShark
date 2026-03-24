@@ -34,7 +34,14 @@ base.describe.serial('locale', () => {
   })
 
   base.afterAll(async () => {
-    await electronApp?.close()
+    try {
+      const pid = electronApp?.process()?.pid
+      await Promise.race([
+        electronApp?.close(),
+        new Promise(resolve => setTimeout(resolve, 5000))
+      ])
+      if (pid) try { process.kill(pid, 'SIGKILL') } catch {}
+    } catch {}
     for (let i = 0; i < 5; i++) {
       try { rmSync(testHomeDir, { recursive: true, force: true }); break }
       catch { await new Promise(r => setTimeout(r, 500)) }
@@ -52,7 +59,7 @@ base.describe.serial('locale', () => {
     // 뒤로가기 — 홈 화면이 한국어인지 확인
     await page.getByRole('button', { name: /Back|뒤로/ }).click()
     await expect(page.getByRole('heading', { name: 'ToonShark' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'PDF 열기' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '파일 열기' })).toBeVisible()
     await expect(page.getByRole('button', { name: '설정' })).toBeVisible()
 
     // 다시 영어로 전환
@@ -67,7 +74,7 @@ base.describe.serial('locale', () => {
     await expect(page.getByText(/Saved!|저장 완료!/)).toBeVisible({ timeout: 5_000 })
 
     await page.getByRole('button', { name: /Back|뒤로/ }).click()
-    await expect(page.getByRole('button', { name: 'Open PDF' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Open File' })).toBeVisible()
   })
 
   // 한국어 설정이 페이지 이동 후에도 유지되는지 확인

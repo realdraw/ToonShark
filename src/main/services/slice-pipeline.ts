@@ -1,4 +1,4 @@
-import {copyFileSync, existsSync} from 'fs'
+import {copyFileSync, existsSync, mkdirSync} from 'fs'
 import {basename, dirname, join} from 'path'
 import sharp from 'sharp'
 import type {AppSettings, JobProgress, RunSliceJobPayload, SliceFileInfo} from '@shared/types'
@@ -42,8 +42,10 @@ export async function runSlicePipeline(
   // Copy source file to job-level source/ (shared across versions)
   const sourceName = basename(payload.sourceFilePath)
   const jobDir = dirname(versionPath)
-  const copiedSourcePath = join(jobDir, 'source', sourceName)
+  const sourceDir = join(jobDir, 'source')
+  const copiedSourcePath = join(sourceDir, sourceName)
   if (!existsSync(copiedSourcePath)) {
+    mkdirSync(sourceDir, { recursive: true })
     copyFileSync(payload.sourceFilePath, copiedSourcePath)
   }
 
