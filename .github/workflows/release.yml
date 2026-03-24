@@ -8,9 +8,13 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  typecheck:
-    name: Type Check
+  validate:
+    name: Typecheck & Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -20,23 +24,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
-
-  unit-test:
-    name: Unit Tests
-    needs: typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
       - run: npm test
 
   build:
     name: Build (${{ matrix.os }})
-    needs: unit-test
+    needs: validate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -53,6 +45,15 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Cache Electron builder
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+            ~\AppData\Local\electron\Cache
+            ~\AppData\Local\electron-builder\Cache
+          key: electron-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
       - run: ${{ matrix.build_cmd }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

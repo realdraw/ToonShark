@@ -1,103 +1,104 @@
-import {existsSync, readdirSync} from 'fs'
+import {existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync} from 'fs'
 import {join} from 'path'
-import {expect, fixturePdfPath, mockNextOpenDialogPath, test} from './fixtures'
+import {tmpdir} from 'os'
+import {test as base, expect} from '@playwright/test'
+import {type ElectronApplication, type Page} from 'playwright'
+import {fixturePdfPath, launchElectronApp, mockNextOpenDialogPath} from './fixtures'
 
-/**
- * Helper: slice a PDF and navigate to the slice detail page
- */
-async function sliceAndGoToSliceDetail(
-  electronApp: Parameters<typeof mockNextOpenDialogPath>[0],
-  page: Awaited<ReturnType<typeof import('playwright')['_electron']['launch']>>['firstWindow'] extends () => Promise<infer P> ? P : never,
-  testBaseDir: string
-) {
-  const pdfPath = fixturePdfPath('auto-slice-3panels.pdf')
+let electronApp: ElectronApplication
+let page: Page
+let testHomeDir: string
+let testBaseDir: string
 
-  await page.evaluate(async (baseDir) => {
-    const current = await window.api.loadSettings()
-    await window.api.saveSettings({ ...current, baseDir })
-  }, testBaseDir)
+base.describe.serial('thumbnail capture', () => {
+  base.beforeAll(async () => {
+    testHomeDir = mkdtempSync(join(tmpdir(), 'toonshark-e2e-home-'))
+    mkdirSync(join(testHomeDir, 'tmp'), { recursive: true })
+    testBaseDir = join(testHomeDir, 'custom-base-dir')
 
-  await mockNextOpenDialogPath(electronApp, pdfPath)
-  await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
-  await expect(page).toHaveURL(/\/workspace$/)
+    electronApp = await launchElectronApp(testHomeDir)
+    page = await electronApp.firstWindow()
+    await page.waitForLoadState('domcontentloaded')
+    await page.getByRole('heading', { name: 'ToonShark' }).waitFor({ timeout: 15000 })
 
-  await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
-  await expect(page.getByRole('button', { name: /^Detail$|^상세$/ }).first()).toBeVisible({ timeout: 20_000 })
+    // 공유 setup: PDF 슬라이스 후 슬라이스 상세 페이지로 이동
+    const pdfPath = fixturePdfPath('auto-slice-3panels.pdf')
+    await page.evaluate(async (baseDir) => {
+      const current = await window.api.loadSettings()
+      await window.api.saveSettings({ ...current, baseDir })
+    }, testBaseDir)
 
-  // Go to job detail
-  await page.getByRole('button', { name: /^Detail$|^상세$/ }).first().click()
-  await expect(page).toHaveURL(/\/job\//)
+    await mockNextOpenDialogPath(electronApp, pdfPath)
+    await page.getByRole('button', { name: /^Open PDF$|^PDF 열기$/ }).click()
+    await expect(page).toHaveURL(/\/workspace$/)
 
-  // Click first slice thumbnail to go to slice detail
-  const firstSlice = page.locator('button').filter({ has: page.locator('img') }).first()
-  await firstSlice.click()
-  await expect(page).toHaveURL(/\/slice\?index=/)
-}
+    await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
+    await expect(page.getByRole('button', { name: /^Detail$|^상세$/ }).first()).toBeVisible({ timeout: 20_000 })
 
-test('slice detail page shows Thumbnail button', async ({ electronApp, page, testBaseDir }) => {
-  await sliceAndGoToSliceDetail(electronApp, page, testBaseDir)
+    await page.getByRole('button', { name: /^Detail$|^상세$/ }).first().click()
+    await expect(page).toHaveURL(/\/job\//)
 
-  await expect(page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ })).toBeVisible()
+    const firstSlice = page.locator('button').filter({ has: page.locator('img') }).first()
+    await firstSlice.click()
+    await expect(page).toHaveURL(/\/slice\?index=/)
+  })
+
+  base.afterAll(async () => {
+    await electronApp?.close()
+    for (let i = 0; i < 5; i++) {
+      try { rmSync(testHomeDir, { recursive: true, force: true }); break }
+      catch { await new Promise(r => setTimeout(r, 500)) }
+    }
+  })
+
+  base.test('slice detail page shows Thumbnail button', async () => {
+    await expect(page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ })).toBeVisible()
+  })
+
+  base.test('thumbnail button shows platform dropdown', async () => {
+    await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
+    await expect(page.getByText('360x522')).toBeVisible({ timeout: 3000 })
+  })
+
+  base.test('captures thumbnail and shows folder button that persists after navigation', async () => {
+    // Wait for image to load
+    const img = page.locator('.relative.inline-block img')
+    await expect(img).toBeVisible({ timeout: 5000 })
+
+    // Click Thumbnail → pick platform (dropdown may already be open from previous test)
+    const dropdownText = page.getByText('360x522')
+    if (!(await dropdownText.isVisible().catch(() => false))) {
+      await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
+      await expect(dropdownText).toBeVisible({ timeout: 3000 })
+    }
+
+    const platformButton = page.locator('button').filter({ hasText: '360x522' }).first()
+    await platformButton.click()
+
+    await expect(page.getByRole('button', { name: /^Save$|^저장$/ })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('button', { name: /^Cancel$|^취소$/ })).toBeVisible()
+
+    await page.getByRole('button', { name: /^Save$|^저장$/ }).click()
+
+    await expect(page.getByText(/^Thumbnail saved$|^썸네일 저장 완료$/)).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible()
+
+    // Verify thumbnail file was created on disk
+    const thumbnailFiles = findThumbnailFiles(testBaseDir)
+    expect(thumbnailFiles.length).toBeGreaterThan(0)
+
+    // Navigate back to job detail and return — folder button should persist
+    await page.getByRole('button', { name: /Back|뒤로/ }).click()
+    await expect(page).toHaveURL(/\/job\/[^/]+$/)
+
+    const firstSlice = page.locator('button').filter({ has: page.locator('img') }).first()
+    await firstSlice.click()
+    await expect(page).toHaveURL(/\/slice\?index=/)
+
+    await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible({ timeout: 5000 })
+  })
 })
 
-test('thumbnail button shows platform dropdown', async ({ electronApp, page, testBaseDir }) => {
-  await sliceAndGoToSliceDetail(electronApp, page, testBaseDir)
-
-  await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
-
-  // Should show dropdown with platforms that have thumbnail specs
-  // ridi has thumbnail spec (360x522) in the default countries.json
-  await expect(page.getByText('360x522')).toBeVisible({ timeout: 3000 })
-})
-
-test('captures thumbnail and shows folder button that persists after navigation', async ({ electronApp, page, testBaseDir }) => {
-  await sliceAndGoToSliceDetail(electronApp, page, testBaseDir)
-
-  // Wait for image to load
-  const img = page.locator('.relative.inline-block img')
-  await expect(img).toBeVisible({ timeout: 5000 })
-
-  // Click Thumbnail → pick platform
-  await page.getByRole('button', { name: /^Thumbnail$|^썸네일$/ }).click()
-  await expect(page.getByText('360x522')).toBeVisible({ timeout: 3000 })
-
-  // Click the first platform with thumbnail spec
-  const platformButton = page.locator('button').filter({ hasText: '360x522' }).first()
-  await platformButton.click()
-
-  // Crop overlay should appear (Save and Cancel buttons)
-  await expect(page.getByRole('button', { name: /^Save$|^저장$/ })).toBeVisible({ timeout: 3000 })
-  await expect(page.getByRole('button', { name: /^Cancel$|^취소$/ })).toBeVisible()
-
-  // Confirm the crop
-  await page.getByRole('button', { name: /^Save$|^저장$/ }).click()
-
-  // Success toast should appear
-  await expect(page.getByText(/^Thumbnail saved$|^썸네일 저장 완료$/)).toBeVisible({ timeout: 5000 })
-
-  // Folder button should appear
-  await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible()
-
-  // Verify thumbnail file was created on disk
-  const thumbnailFiles = findThumbnailFiles(testBaseDir)
-  expect(thumbnailFiles.length).toBeGreaterThan(0)
-
-  // Navigate back to job detail and return — folder button should persist
-  await page.getByRole('button', { name: /Back|뒤로/ }).click()
-  await expect(page).toHaveURL(/\/job\/[^/]+$/)
-
-  // Go back to slice detail
-  const firstSlice = page.locator('button').filter({ has: page.locator('img') }).first()
-  await firstSlice.click()
-  await expect(page).toHaveURL(/\/slice\?index=/)
-
-  // Folder button should still be visible (loaded from disk via getThumbnailDir)
-  await expect(page.locator('button[title="Open Folder"], button[title="폴더 열기"]')).toBeVisible({ timeout: 5000 })
-})
-
-/**
- * Recursively find thumbnail files under the baseDir
- */
 function findThumbnailFiles(baseDir: string): string[] {
   const results: string[] = []
   const jobsDir = join(baseDir, 'jobs')

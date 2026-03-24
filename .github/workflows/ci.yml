@@ -6,9 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  typecheck:
-    name: Type Check
+  lint-and-test:
+    name: Typecheck & Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -18,23 +22,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
-
-  unit-test:
-    name: Unit Tests
-    needs: typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
       - run: npm test
 
   e2e-test:
     name: E2E Tests (${{ matrix.os }})
-    needs: unit-test
+    needs: lint-and-test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -47,5 +39,18 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/ms-playwright
+            ~\AppData\Local\ms-playwright
+          key: playwright-${{ matrix.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+      - name: Install Playwright deps only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
       - run: npm run test:e2e
