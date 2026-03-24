@@ -5,6 +5,8 @@ import {SettingsService} from './services/settings.service'
 import {FileService} from './services/file.service'
 import {SliceService} from './services/slice.service'
 import {PdfService} from './services/pdf.service'
+import {ImageService} from './services/image.service'
+import {SourceService} from './services/source.service'
 import {PreviewService} from './services/preview.service'
 import {JobRepository} from './services/job-repository'
 import {JobExecutionService} from './services/job-execution.service'
@@ -109,11 +111,11 @@ app.whenReady().then(() => {
 
   const fileService = new FileService()
   const sliceService = new SliceService()
-  const pdfService = new PdfService()
+  const sourceService = new SourceService(new PdfService(), new ImageService())
   const previewService = new PreviewService()
   const jobRepository = new JobRepository(settings.baseDir, fileService, logger)
   const jobExecutionService = new JobExecutionService(
-    settingsService, fileService, sliceService, pdfService, previewService, jobRepository
+    settingsService, fileService, sliceService, previewService, jobRepository
   )
   const exportService = new ExportService(settingsService, jobRepository, logger)
 
@@ -123,7 +125,7 @@ app.whenReady().then(() => {
     jobRepository,
     jobExecutionService,
     exportService,
-    pdfService,
+    sourceService,
     logger,
     getMainWindow: () => mainWindow
   })

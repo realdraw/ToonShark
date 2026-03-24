@@ -2,6 +2,8 @@ import {parentPort} from 'worker_threads'
 import {rmSync} from 'fs'
 import sharp from 'sharp'
 import {PdfService} from '../services/pdf.service'
+import {ImageService} from '../services/image.service'
+import {SourceService} from '../services/source.service'
 import {SliceService} from '../services/slice.service'
 import type {PipelineResult} from '../services/slice-pipeline'
 import {runSlicePipeline} from '../services/slice-pipeline'
@@ -29,13 +31,13 @@ function send(msg: WorkerMessage) {
 
 async function execute(input: WorkerInput) {
   const { payload, settings, versionPath, prefix } = input
-  const pdfService = new PdfService()
+  const sourceService = new SourceService(new PdfService(), new ImageService())
   const sliceService = new SliceService()
 
   try {
     const result = await runSlicePipeline(
       payload, settings, versionPath, prefix,
-      pdfService, sliceService,
+      sourceService, sliceService,
       (progress) => send({ type: 'progress', data: progress })
     )
 

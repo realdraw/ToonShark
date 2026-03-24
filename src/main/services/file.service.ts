@@ -47,10 +47,10 @@ export class FileService {
     return versionPath
   }
 
-  sanitizePdfFolderName(pdfPath: string): string {
+  sanitizeSourceFolderName(filePath: string): string {
     // Handle both / and \ separators (cross-platform)
-    const fileName = pdfPath.replace(/\\/g, '/').split('/').pop() ?? ''
-    const name = fileName.replace(/\.pdf$/i, '')
+    const fileName = filePath.replace(/\\/g, '/').split('/').pop() ?? ''
+    const name = fileName.replace(/\.(pdf|jpe?g|png)$/i, '')
     let sanitized = name
       .trim()
       .replace(/\s+/g, '_')
@@ -65,7 +65,7 @@ export class FileService {
     return sanitized
   }
 
-  async comparePdfFiles(pathA: string, pathB: string): Promise<boolean> {
+  async compareSourceFiles(pathA: string, pathB: string): Promise<boolean> {
     try {
       const [statA, statB] = await Promise.all([stat(pathA), stat(pathB)])
       if (statA.size !== statB.size) return false

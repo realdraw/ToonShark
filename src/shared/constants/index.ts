@@ -2,6 +2,17 @@ import type {AppSettings} from '../types'
 import {DEFAULT_AUTO_SLICE} from '../types'
 
 export { PDF_SCALE_MIN, PDF_SCALE_MAX } from './pdf-scale'
+export {
+  SUPPORTED_EXTENSIONS,
+  SUPPORTED_IMAGE_EXTENSIONS,
+  SUPPORTED_DOCUMENT_EXTENSIONS,
+  isSupportedFile,
+  isPdfFile,
+  isImageFile,
+  getFileExtension,
+  stripExtension,
+  getDialogFilters
+} from './supported-formats'
 
 export const DEFAULT_SETTINGS: AppSettings = {
   baseDir: '',

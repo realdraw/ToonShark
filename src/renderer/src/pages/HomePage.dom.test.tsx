@@ -11,16 +11,16 @@ import type {StorageInfo} from '@shared/types'
 
 const navigate = vi.fn()
 const deleteAll = vi.fn()
-const confirmDeleteJobsByPdf = vi.fn()
-let storageInfo: StorageInfo | null = { totalSize: 0, pdfs: [] }
+const confirmDeleteJobsBySource = vi.fn()
+let storageInfo: StorageInfo | null = { totalSize: 0, sources: [] }
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
   return { ...actual, useNavigate: () => navigate }
 })
 
-vi.mock('../hooks/usePdfDrop', () => ({
-  usePdfDrop: () => ({ isDragging: false, dropProps: {} })
+vi.mock('../hooks/useFileDrop', () => ({
+  useFileDrop: () => ({ isDragging: false, dropProps: {} })
 }))
 
 vi.mock('../hooks/useStorageInfo', () => ({
@@ -32,7 +32,7 @@ vi.mock('../hooks/useStorageInfo', () => ({
 
 vi.mock('../hooks/useDeleteActions', () => ({
   useDeleteActions: () => ({
-    confirmDeleteJobsByPdf,
+    confirmDeleteJobsBySource,
     confirmDeleteAll: deleteAll
   })
 }))
@@ -53,17 +53,17 @@ describe('HomePage', () => {
   beforeEach(() => {
     navigate.mockReset()
     deleteAll.mockReset()
-    confirmDeleteJobsByPdf.mockReset()
-    storageInfo = { totalSize: 0, pdfs: [] }
+    confirmDeleteJobsBySource.mockReset()
+    storageInfo = { totalSize: 0, sources: [] }
     useJobStore.setState({
-      pdfList: [],
-      activePdfPath: null,
+      fileList: [],
+      activeFilePath: null,
       recentJobs: [],
       currentJob: null,
       sessionResults: [],
       isLoading: false,
       isRunning: false,
-      runningPdfPath: null,
+      runningFilePath: null,
       progress: null,
       error: null,
       isExporting: false,
@@ -73,7 +73,7 @@ describe('HomePage', () => {
     Object.defineProperty(window, 'api', {
       configurable: true,
       value: {
-        selectSourcePdf: vi.fn(async () => '/books/episode1.pdf'),
+        selectSourceFile: vi.fn(async () => '/books/episode1.pdf'),
         loadSettings: vi.fn(async () => ({ baseDir: '/base/dir' })),
         getRecentJobs: vi.fn(async () => []),
         openPath: vi.fn(async () => {}),
@@ -98,10 +98,10 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: en.openPdf }))
+    await user.click(screen.getByRole('button', { name: en.openFile }))
 
     await waitFor(() => {
-      expect(useJobStore.getState().pdfList).toHaveLength(1)
+      expect(useJobStore.getState().fileList).toHaveLength(1)
       expect(navigate).toHaveBeenCalledWith('/workspace')
     })
   })
@@ -111,8 +111,8 @@ describe('HomePage', () => {
       id: 'job-1',
       title: 'episode1',
       prefix: 'episode1',
-      sourcePdfPath: '/books/episode1.pdf',
-      copiedPdfPath: '/base/source.pdf',
+      sourceFilePath: '/books/episode1.pdf',
+      copiedSourcePath: '/base/source.pdf',
       createdAt: new Date().toISOString(),
       mode: 'auto' as const,
       pageCount: 1,
@@ -124,7 +124,7 @@ describe('HomePage', () => {
     ;(window.api.getRecentJobs as ReturnType<typeof vi.fn>).mockResolvedValue([recentJob])
     storageInfo = {
       totalSize: 1234,
-      pdfs: [{ sourcePdfPath: '/books/episode1.pdf', name: 'episode1', size: 1234, jobs: [{ jobId: 'job-1', title: 'episode1', createdAt: '2026-01-01T00:00:00Z', size: 512 }] }]
+      sources: [{ sourceFilePath: '/books/episode1.pdf', name: 'episode1', size: 1234, jobs: [{ jobId: 'job-1', title: 'episode1', createdAt: '2026-01-01T00:00:00Z', size: 512 }] }]
     }
 
     const user = userEvent.setup()
@@ -133,7 +133,7 @@ describe('HomePage', () => {
     await user.click(await screen.findByRole('button', { name: en.open }))
 
     await waitFor(() => {
-      expect(useJobStore.getState().pdfList).toEqual([{ path: '/books/episode1.pdf', name: 'episode1' }])
+      expect(useJobStore.getState().fileList).toEqual([{ path: '/books/episode1.pdf', name: 'episode1' }])
       expect(navigate).toHaveBeenCalledWith('/workspace')
     })
   })
@@ -143,8 +143,8 @@ describe('HomePage', () => {
       id: 'job-1',
       title: 'episode1',
       prefix: 'episode1',
-      sourcePdfPath: '/books/episode1.pdf',
-      copiedPdfPath: '/base/source.pdf',
+      sourceFilePath: '/books/episode1.pdf',
+      copiedSourcePath: '/base/source.pdf',
       createdAt: new Date().toISOString(),
       mode: 'auto' as const,
       pageCount: 1,
@@ -158,13 +158,13 @@ describe('HomePage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(await screen.findByRole('button', { name: en.deletePdf }))
+    await user.click(await screen.findByRole('button', { name: en.deleteSource }))
 
-    expect(confirmDeleteJobsByPdf).toHaveBeenCalledWith('/books/episode1.pdf', 'episode1')
+    expect(confirmDeleteJobsBySource).toHaveBeenCalledWith('/books/episode1.pdf', 'episode1')
   })
 
   it('triggers delete all from storage warning action', async () => {
-    storageInfo = { totalSize: 11 * 1024 * 1024 * 1024, pdfs: [] }
+    storageInfo = { totalSize: 11 * 1024 * 1024 * 1024, sources: [] }
     const user = userEvent.setup()
     renderPage()
 

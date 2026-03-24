@@ -43,14 +43,14 @@ describe('preload api', () => {
 
     api.loadSettings()
     api.getDefaultSettings()
-    api.runSliceJob({ sourcePdfPath: '/a.pdf', title: 'a', prefix: 'a', mode: 'fixed', options: {} })
+    api.runSliceJob({ sourceFilePath: '/a.pdf', title: 'a', prefix: 'a', mode: 'fixed', options: {} })
 
     expect(invoke).toHaveBeenNthCalledWith(1, 'load-settings')
     expect(invoke).toHaveBeenNthCalledWith(2, 'get-default-settings')
     expect(invoke).toHaveBeenNthCalledWith(
       3,
       'run-slice-job',
-      { sourcePdfPath: '/a.pdf', title: 'a', prefix: 'a', mode: 'fixed', options: {} }
+      { sourceFilePath: '/a.pdf', title: 'a', prefix: 'a', mode: 'fixed', options: {} }
     )
   })
 

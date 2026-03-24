@@ -2,7 +2,7 @@ import {copyFileSync, existsSync} from 'fs'
 import {basename, dirname, join} from 'path'
 import sharp from 'sharp'
 import type {AppSettings, JobProgress, RunSliceJobPayload, SliceFileInfo} from '@shared/types'
-import type {PdfService, RawPageResult} from './pdf.service'
+import type {RawPageResult, SourceRenderer} from './source-renderer'
 import type {SliceService} from './slice.service'
 
 type ProgressCallback = (progress: JobProgress) => void
@@ -14,7 +14,7 @@ const RENDERED_WRITE_BATCH_SIZE = 5
 export type PipelineResult = {
   files: (SliceFileInfo & { pageNumber: number })[]
   pageCount: number
-  copiedPdfPath: string
+  copiedSourcePath: string
 }
 
 function rawToSharpInput(raw: RawPageResult) {
@@ -25,25 +25,26 @@ function rawToSharpInput(raw: RawPageResult) {
 }
 
 /**
- * Shared PDF→Slice pipeline used by both Worker thread and direct execution.
+ * Shared source→slice pipeline used by both Worker thread and direct execution.
+ * Accepts any SourceRenderer (PDF, image, etc.).
  */
 export async function runSlicePipeline(
   payload: RunSliceJobPayload,
   settings: AppSettings,
   versionPath: string,
   prefix: string,
-  pdfService: PdfService,
+  sourceRenderer: SourceRenderer,
   sliceService: SliceService,
   onProgress: ProgressCallback
 ): Promise<PipelineResult> {
   onProgress({ stepKey: 'progressCopyPdf', current: 0, total: 0, percent: 0 })
 
-  // Copy source PDF to job-level source/ (shared across versions)
-  const pdfName = basename(payload.sourcePdfPath)
+  // Copy source file to job-level source/ (shared across versions)
+  const sourceName = basename(payload.sourceFilePath)
   const jobDir = dirname(versionPath)
-  const copiedPdfPath = join(jobDir, 'source', pdfName)
-  if (!existsSync(copiedPdfPath)) {
-    copyFileSync(payload.sourcePdfPath, copiedPdfPath)
+  const copiedSourcePath = join(jobDir, 'source', sourceName)
+  if (!existsSync(copiedSourcePath)) {
+    copyFileSync(payload.sourceFilePath, copiedSourcePath)
   }
 
   onProgress({ stepKey: 'progressCountPages', current: 0, total: 0, percent: 5 })
@@ -57,8 +58,8 @@ export async function runSlicePipeline(
   const allFiles: (SliceFileInfo & { pageNumber: number })[] = []
   const pendingRenderedWrites: Promise<void>[] = []
 
-  const pageCount = await pdfService.renderAllPagesRaw(
-    payload.sourcePdfPath,
+  const pageCount = await sourceRenderer.renderAllPagesRaw(
+    payload.sourceFilePath,
     pdfScale,
     async (page, raw, totalPages) => {
       const totalSteps = totalPages * 2
@@ -133,5 +134,5 @@ export async function runSlicePipeline(
   // Wait for background rendered PNG writes to finish
   await Promise.all(pendingRenderedWrites)
 
-  return { files: allFiles, pageCount, copiedPdfPath }
+  return { files: allFiles, pageCount, copiedSourcePath }
 }

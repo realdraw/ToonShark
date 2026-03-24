@@ -14,24 +14,24 @@ const ko: TranslationKeys = {
   appTitle: 'ToonShark',
   openFolder: '폴더 열기',
   settings: '설정',
-  openPdf: 'PDF 열기',
+  openFile: '파일 열기',
   recentJobs: '최근 작업',
   noJobsTitle: '작업 내역이 없습니다',
-  noJobsDesc: 'PDF를 열어 시작하세요',
-  dropPdfHere: 'PDF 파일을 여기에 놓으세요',
+  noJobsDesc: '파일을 열어 시작하세요',
+  dropFileHere: 'PDF 또는 이미지 파일을 여기에 놓으세요',
   runs: (n: number) => `${n}회 실행`,
   slices: (n: number) => `${n}개 슬라이스`,
   preview: '미리보기',
   fixed: '고정',
   auto: '자동',
 
-  openPdfs: '열린 PDF',
+  openFiles: '열린 파일',
 
   // WorkspacePage
-  addPdf: '+ PDF 추가',
+  addFile: '+ 파일 추가',
   home: '홈',
   filePrefix: '파일 접두사',
-  filePrefixDesc: '출력 파일명 앞에 붙는 이름. PDF 파일명에서 자동 생성되며 한글도 사용 가능',
+  filePrefixDesc: '출력 파일명 앞에 붙는 이름. 원본 파일명에서 자동 생성되며 한글도 사용 가능',
   sliceMode: '분할 모드',
   sliceModeDesc: '자동: 흰색 여백을 분석해 컷 경계를 자동 탐지. 고정: 일정한 높이로 기계적 분할',
   whiteThreshold: '여백 색상 민감도',
@@ -56,7 +56,7 @@ const ko: TranslationKeys = {
   noResultsTitle: '결과가 없습니다',
   noResultsDesc: '옵션을 조정한 뒤 실행을 클릭하세요',
   runCount: (n: number) => `(${n}회 실행)`,
-  sourcePdf: '원본 PDF',
+  sourceFile: '원본 파일',
   folder: '폴더',
   detail: '상세',
 
@@ -67,8 +67,8 @@ const ko: TranslationKeys = {
   mode: '모드',
   fixedInterval: '고정 간격',
   prefixLabel: '접두사',
-  sourcePdfLabel: '원본 PDF',
-  openSourcePdf: '원본 PDF 열기',
+  sourceFileLabel: '원본 파일',
+  openSourceFile: '원본 파일 열기',
 
   // SliceDetailPage
   sliceNotFound: '슬라이스를 찾을 수 없습니다',
@@ -119,9 +119,9 @@ const ko: TranslationKeys = {
   storageWarning: (size: string) => `저장 용량이 ${size}입니다. 오래된 작업을 정리하여 디스크 공간을 확보하세요.`,
   storageWarningAction: '정리하기',
   deleteAll: '전체 삭제',
-  deletePdf: '삭제',
+  deleteSource: '삭제',
   confirmDeleteAll: '모든 작업 히스토리를 삭제하시겠습니까? 모든 파일이 영구적으로 삭제됩니다.',
-  confirmDeletePdf: (name: string) => `"${name}"의 모든 히스토리를 삭제하시겠습니까? 관련 파일이 모두 영구적으로 삭제됩니다.`,
+  confirmDeleteSource: (name: string) => `"${name}"의 모든 히스토리를 삭제하시겠습니까? 관련 파일이 모두 영구적으로 삭제됩니다.`,
   confirmDeleteJob: '이 작업을 삭제하시겠습니까? 관련 파일이 영구적으로 삭제됩니다.',
 
   // Device Presets
@@ -187,7 +187,7 @@ const ko: TranslationKeys = {
   },
 
   // Progress steps
-  progressCopyPdf: 'PDF 복사 중...',
+  progressCopyPdf: '소스 파일 복사 중...',
   progressCountPages: '페이지 수 확인 중...',
   progressRenderPages: '페이지 렌더링 중...',
   progressSlicing: '이미지 분할 중...',

@@ -1,25 +1,25 @@
 import {create} from 'zustand'
 import type {ExportJobPayload, ExportResult, JobMeta, JobProgress, RunSliceJobPayload} from '@shared/types'
-import {extractPdfName, toErrorMessage} from '@shared/utils'
+import {extractSourceName, toErrorMessage} from '@shared/utils'
 import {useWorkspaceStore} from './workspaceStore'
 
-type PdfEntry = {
+type FileEntry = {
   path: string
   name: string
 }
 
 type JobStore = {
-  // Multi-PDF workspace
-  pdfList: PdfEntry[]
-  activePdfPath: string | null
+  // Multi-file workspace
+  fileList: FileEntry[]
+  activeFilePath: string | null
 
   recentJobs: JobMeta[]
   currentJob: JobMeta | null
   sessionResults: JobMeta[]
   isLoading: boolean
-  isSelectingPdf: boolean
+  isSelectingFile: boolean
   isRunning: boolean
-  runningPdfPath: string | null
+  runningFilePath: string | null
   progress: JobProgress | null
   error: string | null
 
@@ -28,15 +28,15 @@ type JobStore = {
   exportProgress: JobProgress | null
   exportResult: ExportResult | null
 
-  addPdf: () => Promise<void>
-  addPdfByPath: (path: string) => void
-  setActivePdf: (path: string) => void
-  removePdf: (path: string) => void
+  addFile: () => Promise<void>
+  addFileByPath: (path: string) => void
+  setActiveFile: (path: string) => void
+  removeFile: (path: string) => void
   fetchRecentJobs: () => Promise<void>
   fetchJobDetail: (jobId: string) => Promise<void>
   runSliceJob: (payload: RunSliceJobPayload) => Promise<JobMeta>
   deleteJob: (jobId: string) => Promise<void>
-  deleteJobsByPdf: (sourcePdfPath: string) => Promise<void>
+  deleteJobsBySource: (sourceFilePath: string) => Promise<void>
   deleteAllJobs: () => Promise<void>
   // Export actions
   runExport: (payload: ExportJobPayload) => Promise<ExportResult>
@@ -44,16 +44,16 @@ type JobStore = {
 }
 
 export const useJobStore = create<JobStore>((set, get) => ({
-  pdfList: [],
-  activePdfPath: null,
+  fileList: [],
+  activeFilePath: null,
 
   recentJobs: [],
   currentJob: null,
   sessionResults: [],
   isLoading: false,
-  isSelectingPdf: false,
+  isSelectingFile: false,
   isRunning: false,
-  runningPdfPath: null,
+  runningFilePath: null,
   progress: null,
   error: null,
 
@@ -61,46 +61,46 @@ export const useJobStore = create<JobStore>((set, get) => ({
   exportProgress: null,
   exportResult: null,
 
-  addPdf: async () => {
-    if (get().isSelectingPdf) return
-    set({ isSelectingPdf: true })
+  addFile: async () => {
+    if (get().isSelectingFile) return
+    set({ isSelectingFile: true })
     try {
-      const path = await window.api.selectSourcePdf()
+      const path = await window.api.selectSourceFile()
       if (!path) return
-      get().addPdfByPath(path)
+      get().addFileByPath(path)
     } finally {
-      set({ isSelectingPdf: false })
+      set({ isSelectingFile: false })
     }
   },
 
-  addPdfByPath: (path: string) => {
-    const { pdfList } = get()
-    const exists = pdfList.some((p) => p.path === path)
+  addFileByPath: (path: string) => {
+    const { fileList } = get()
+    const exists = fileList.some((p) => p.path === path)
     if (!exists) {
       set({
-        pdfList: [...pdfList, { path, name: extractPdfName(path) }],
-        activePdfPath: path
+        fileList: [...fileList, { path, name: extractSourceName(path) }],
+        activeFilePath: path
       })
     } else {
-      set({ activePdfPath: path })
+      set({ activeFilePath: path })
     }
   },
 
-  setActivePdf: (path: string) => {
-    set({ activePdfPath: path })
+  setActiveFile: (path: string) => {
+    set({ activeFilePath: path })
   },
 
-  removePdf: (path: string) => {
-    const { pdfList, activePdfPath } = get()
-    const next = pdfList.filter((p) => p.path !== path)
+  removeFile: (path: string) => {
+    const { fileList, activeFilePath } = get()
+    const next = fileList.filter((p) => p.path !== path)
     const newActive =
-      activePdfPath === path
+      activeFilePath === path
         ? next.length > 0
           ? next[0].path
           : null
-        : activePdfPath
+        : activeFilePath
     useWorkspaceStore.getState().removeOptions(path)
-    set({ pdfList: next, activePdfPath: newActive })
+    set({ fileList: next, activeFilePath: newActive })
   },
 
   fetchRecentJobs: async () => {
@@ -124,7 +124,7 @@ export const useJobStore = create<JobStore>((set, get) => ({
   },
 
   runSliceJob: async (payload: RunSliceJobPayload) => {
-    set({ isRunning: true, runningPdfPath: payload.sourcePdfPath, error: null, progress: null })
+    set({ isRunning: true, runningFilePath: payload.sourceFilePath, error: null, progress: null })
     const unsubscribe = window.api.onJobProgress((progress) => {
       if (progress.operation === 'slice') set({ progress })
     })
@@ -132,13 +132,13 @@ export const useJobStore = create<JobStore>((set, get) => ({
       const meta = await window.api.runSliceJob(payload)
       set((state) => ({
         isRunning: false,
-        runningPdfPath: null,
+        runningFilePath: null,
         progress: null,
         sessionResults: [meta, ...state.sessionResults]
       }))
       return meta
     } catch (err: unknown) {
-      set({ error: toErrorMessage(err), isRunning: false, runningPdfPath: null, progress: null })
+      set({ error: toErrorMessage(err), isRunning: false, runningFilePath: null, progress: null })
       throw err
     } finally {
       unsubscribe()
@@ -157,21 +157,21 @@ export const useJobStore = create<JobStore>((set, get) => ({
     }
   },
 
-  deleteJobsByPdf: async (sourcePdfPath: string) => {
+  deleteJobsBySource: async (sourceFilePath: string) => {
     try {
-      await window.api.deleteJobsByPdf(sourcePdfPath)
-      useWorkspaceStore.getState().removeOptions(sourcePdfPath)
+      await window.api.deleteJobsBySource(sourceFilePath)
+      useWorkspaceStore.getState().removeOptions(sourceFilePath)
       set((state) => {
-        const pdfList = state.pdfList.filter((p) => p.path !== sourcePdfPath)
-        const activePdfPath =
-          state.activePdfPath === sourcePdfPath
-            ? pdfList.length > 0 ? pdfList[0].path : null
-            : state.activePdfPath
+        const fileList = state.fileList.filter((p) => p.path !== sourceFilePath)
+        const activeFilePath =
+          state.activeFilePath === sourceFilePath
+            ? fileList.length > 0 ? fileList[0].path : null
+            : state.activeFilePath
         return {
-          recentJobs: state.recentJobs.filter((j) => j.sourcePdfPath !== sourcePdfPath),
-          sessionResults: state.sessionResults.filter((j) => j.sourcePdfPath !== sourcePdfPath),
-          pdfList,
-          activePdfPath
+          recentJobs: state.recentJobs.filter((j) => j.sourceFilePath !== sourceFilePath),
+          sessionResults: state.sessionResults.filter((j) => j.sourceFilePath !== sourceFilePath),
+          fileList,
+          activeFilePath
         }
       })
     } catch (err: unknown) {
@@ -182,12 +182,12 @@ export const useJobStore = create<JobStore>((set, get) => ({
   deleteAllJobs: async () => {
     try {
       await window.api.deleteAllJobs()
-      const { pdfList } = get()
+      const { fileList } = get()
       const ws = useWorkspaceStore.getState()
-      for (const pdf of pdfList) {
-        ws.removeOptions(pdf.path)
+      for (const file of fileList) {
+        ws.removeOptions(file.path)
       }
-      set({ recentJobs: [], sessionResults: [], pdfList: [], activePdfPath: null })
+      set({ recentJobs: [], sessionResults: [], fileList: [], activeFilePath: null })
     } catch (err: unknown) {
       set({ error: toErrorMessage(err) })
     }

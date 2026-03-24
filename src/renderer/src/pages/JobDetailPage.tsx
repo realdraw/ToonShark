@@ -63,8 +63,8 @@ return (
             <p className="text-primary">{currentJob.prefix}</p>
           </div>
           <div className="col-span-2">
-            <span className="text-tertiary">{t.sourcePdfLabel}</span>
-            <p className="text-primary truncate">{currentJob.sourcePdfPath.split(/[\\/]/).pop()}</p>
+            <span className="text-tertiary">{t.sourceFileLabel}</span>
+            <p className="text-primary truncate">{currentJob.sourceFilePath.split(/[\\/]/).pop()}</p>
           </div>
         </div>
       </div>
@@ -84,10 +84,10 @@ return (
           {t.exportButton}
         </button>
         <button
-          onClick={() => window.api.openSourcePdf(currentJob.id).catch(() => {})}
+          onClick={() => window.api.openSourceFile(currentJob.id).catch(() => {})}
           className="px-4 py-2 bg-elevated hover:bg-hover-elevated rounded-lg text-sm transition"
         >
-          {t.openSourcePdf}
+          {t.openSourceFile}
         </button>
         <button
           onClick={handleOpenFolder}

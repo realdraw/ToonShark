@@ -42,8 +42,8 @@ export type JobMeta = {
   id: string
   title: string
   prefix: string
-  sourcePdfPath: string
-  copiedPdfPath: string
+  sourceFilePath: string
+  copiedSourcePath: string
   createdAt: string
   mode: SliceMode
   pageCount: number
@@ -102,8 +102,8 @@ export type StorageJobInfo = {
   size: number
 }
 
-export type StoragePdfInfo = {
-  sourcePdfPath: string
+export type StorageSourceInfo = {
+  sourceFilePath: string
   name: string
   size: number
   jobs: StorageJobInfo[]
@@ -111,7 +111,7 @@ export type StoragePdfInfo = {
 
 export type StorageInfo = {
   totalSize: number
-  pdfs: StoragePdfInfo[]
+  sources: StorageSourceInfo[]
 }
 
 export type EpisodeSpec = {
@@ -198,7 +198,7 @@ export type CaptureThumbnailResult = {
 }
 
 export type RunSliceJobPayload = {
-  sourcePdfPath: string
+  sourceFilePath: string
   title: string
   prefix: string
   mode: SliceMode

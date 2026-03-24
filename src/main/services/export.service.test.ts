@@ -45,9 +45,9 @@ describe('ExportService', () => {
     return {
       getJobDetail: () => meta,
       getRecentJobs: () => [],
-      getStorageInfo: () => ({ totalSize: 0, pdfs: [] }),
+      getStorageInfo: () => ({ totalSize: 0, sources: [] }),
       deleteJob: () => true,
-      deleteJobsByPdf: () => 0,
+      deleteJobsBySource: () => 0,
       deleteAllJobs: () => 0
     } as any
   }
@@ -80,8 +80,8 @@ describe('ExportService', () => {
       id: 'test-job-id',
       title: 'Test Job',
       prefix: 'test',
-      sourcePdfPath: '/fake/source.pdf',
-      copiedPdfPath: join(testDir, 'jobs', 'test_prefix', 'source', 'source.pdf'),
+      sourceFilePath: '/fake/source.pdf',
+      copiedSourcePath: join(testDir, 'jobs', 'test_prefix', 'source', 'source.pdf'),
       createdAt: '2026-01-01T12:00:00Z',
       mode: 'auto',
       pageCount: 1,

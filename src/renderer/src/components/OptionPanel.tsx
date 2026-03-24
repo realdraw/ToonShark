@@ -2,38 +2,39 @@ import {useEffect, useState} from 'react'
 import {OptionField} from './OptionField'
 import type {CutPosition, JobProgress} from '@shared/types'
 import type {PdfOptions} from '../stores/workspaceStore'
-import {PDF_SCALE_MAX, PDF_SCALE_MIN} from '@shared/constants'
+import {PDF_SCALE_MAX, PDF_SCALE_MIN, isPdfFile} from '@shared/constants'
 import type {TranslationKeys} from '../i18n/en'
 
 type OptionPanelProps = {
-  pdfPath: string | null
+  filePath: string | null
   options: PdfOptions
   onOptionChange: <K extends keyof PdfOptions>(key: K, value: PdfOptions[K]) => void
   isRunning: boolean
   canRun: boolean
   progress: JobProgress | null
   error: string | null
-  runningPdfName?: string
+  runningFileName?: string
   onRun: () => void
   t: TranslationKeys
 }
 
 export function OptionPanel({
-  pdfPath, options, onOptionChange,
-  isRunning, canRun, progress, error, runningPdfName,
+  filePath, options, onOptionChange,
+  isRunning, canRun, progress, error, runningFileName,
   onRun, t
 }: OptionPanelProps) {
   const [pageDims, setPageDims] = useState<{ width: number; height: number } | null>(null)
+  const showPdfScale = filePath ? isPdfFile(filePath) : true
 
   useEffect(() => {
     setPageDims(null)
-    if (!pdfPath) return
+    if (!filePath) return
     let cancelled = false
-    window.api.getPdfPageDimensions(pdfPath)
+    window.api.getSourceDimensions(filePath)
       .then((dims) => { if (!cancelled) setPageDims(dims) })
       .catch(() => { if (!cancelled) setPageDims(null) })
     return () => { cancelled = true }
-  }, [pdfPath])
+  }, [filePath])
 
   const set = <K extends keyof PdfOptions>(key: K) =>
     (value: PdfOptions[K]) => onOptionChange(key, value)
@@ -159,30 +160,39 @@ export function OptionPanel({
         </div>
       )}
 
-      {/* PDF Scale */}
-      <OptionField label={t.pdfScaleLabel} desc={t.pdfScaleDesc}>
-        <div>
-          <input
-            type="range"
-            min={PDF_SCALE_MIN}
-            max={PDF_SCALE_MAX}
-            step={0.5}
-            value={options.pdfScale}
-            onChange={(e) => onOptionChange('pdfScale', Number(e.target.value))}
-            className="w-full"
-          />
-          <div className="flex justify-between text-[10px] text-muted mt-0.5">
-            <span>{PDF_SCALE_MIN}x</span>
-            <span className="text-secondary font-medium">{options.pdfScale}x</span>
-            <span>{PDF_SCALE_MAX}x</span>
-          </div>
-          {pageDims && (
-            <div className="text-[10px] text-tertiary mt-1 text-center">
-              {Math.floor(pageDims.width * options.pdfScale)} x {Math.floor(pageDims.height * options.pdfScale)}px
+      {/* PDF Scale — only shown for PDF files */}
+      {showPdfScale && (
+        <OptionField label={t.pdfScaleLabel} desc={t.pdfScaleDesc}>
+          <div>
+            <input
+              type="range"
+              min={PDF_SCALE_MIN}
+              max={PDF_SCALE_MAX}
+              step={0.5}
+              value={options.pdfScale}
+              onChange={(e) => onOptionChange('pdfScale', Number(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex justify-between text-[10px] text-muted mt-0.5">
+              <span>{PDF_SCALE_MIN}x</span>
+              <span className="text-secondary font-medium">{options.pdfScale}x</span>
+              <span>{PDF_SCALE_MAX}x</span>
             </div>
-          )}
+            {pageDims && (
+              <div className="text-[10px] text-tertiary mt-1 text-center">
+                {Math.floor(pageDims.width * options.pdfScale)} x {Math.floor(pageDims.height * options.pdfScale)}px
+              </div>
+            )}
+          </div>
+        </OptionField>
+      )}
+
+      {/* Image dimensions — shown for non-PDF files */}
+      {!showPdfScale && pageDims && (
+        <div className="text-xs text-tertiary mb-4 text-center">
+          {pageDims.width} x {pageDims.height}px
         </div>
-      </OptionField>
+      )}
 
       {error && (
         <div className="bg-error-bg border border-error-border rounded p-2 mb-4 text-error-text text-xs">
@@ -202,10 +212,10 @@ export function OptionPanel({
       {/* Progress Indicator */}
       {isRunning && progress && (
         <div className="mt-3">
-          {runningPdfName && (
+          {runningFileName && (
             <div className="flex items-center gap-1.5 text-xs text-blue-300 mb-1.5 truncate">
               <span className="flex-shrink-0 w-3 h-3 border-[1.5px] border-blue-400 border-t-transparent rounded-full animate-spin" />
-              <span className="truncate">{runningPdfName}.pdf</span>
+              <span className="truncate">{runningFileName}</span>
             </div>
           )}
           <div className="flex items-center justify-between text-xs text-tertiary mb-1">

@@ -54,9 +54,9 @@ function createServices(): MockedServices {
       updateBaseDir: vi.fn(),
       getRecentJobs: vi.fn(async () => []),
       getJobDetail: vi.fn(async () => null as JobMeta | null),
-      getStorageInfo: vi.fn(async () => ({ totalSize: 0, pdfs: [] })),
+      getStorageInfo: vi.fn(async () => ({ totalSize: 0, sources: [] })),
       deleteJob: vi.fn(async () => false),
-      deleteJobsByPdf: vi.fn(async () => 0),
+      deleteJobsBySource: vi.fn(async () => 0),
       deleteAllJobs: vi.fn(async () => 0)
     } as any,
     jobExecutionService: {
@@ -66,8 +66,8 @@ function createServices(): MockedServices {
           id: 'job-1',
           title: 'test',
           prefix: 'test',
-          sourcePdfPath: '/allowed/base/source.pdf',
-          copiedPdfPath: '/allowed/base/jobs/test/source/source.pdf',
+          sourceFilePath: '/allowed/base/source.pdf',
+          copiedSourcePath: '/allowed/base/jobs/test/source/source.pdf',
           createdAt: new Date().toISOString(),
           mode: 'fixed',
           pageCount: 1,
@@ -84,7 +84,7 @@ function createServices(): MockedServices {
       getThumbnailDir: vi.fn(() => '/allowed/base/jobs/test/v1/export/kr/naver/thumbnail'),
       captureThumbnail: vi.fn(async () => ({ outputPath: '/allowed/base/jobs/test/v1/export/kr/naver/thumbnail/test.jpg', width: 1200, height: 630 }))
     } as any,
-    pdfService: {
+    sourceService: {
       getPageDimensions: vi.fn(async () => ({ width: 100, height: 200 }))
     } as any,
     logger: {
@@ -252,8 +252,8 @@ describe('registerIpcHandlers', () => {
           id: 'job-1',
           title: 'test',
           prefix: 'test',
-          sourcePdfPath: '/allowed/base/source.pdf',
-          copiedPdfPath: '/allowed/base/jobs/test/source/source.pdf',
+          sourceFilePath: '/allowed/base/source.pdf',
+          copiedSourcePath: '/allowed/base/jobs/test/source/source.pdf',
           createdAt: new Date().toISOString(),
           mode: 'fixed',
           pageCount: 1,
@@ -268,7 +268,7 @@ describe('registerIpcHandlers', () => {
     registerIpcHandlers(services)
     const handler = handleMap.get('run-slice-job')!
     const payload: RunSliceJobPayload = {
-      sourcePdfPath: '/allowed/base/source.pdf',
+      sourceFilePath: '/allowed/base/source.pdf',
       title: 'test',
       prefix: 'test',
       mode: 'fixed',

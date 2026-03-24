@@ -42,15 +42,15 @@ describe('ExportPage', () => {
     exportHistoryEntries = []
     useToastStore.setState({ toasts: [] })
     useJobStore.setState({
-      pdfList: [],
-      activePdfPath: null,
+      fileList: [],
+      activeFilePath: null,
       recentJobs: [],
       currentJob: {
         id: 'job-1',
         title: 'Episode 1',
         prefix: 'ep1',
-        sourcePdfPath: '/pdfs/ep1.pdf',
-        copiedPdfPath: '/base/jobs/source.pdf',
+        sourceFilePath: '/pdfs/ep1.pdf',
+        copiedSourcePath: '/base/jobs/source.pdf',
         createdAt: new Date().toISOString(),
         mode: 'fixed',
         pageCount: 1,
@@ -64,7 +64,7 @@ describe('ExportPage', () => {
       sessionResults: [],
       isLoading: false,
       isRunning: false,
-      runningPdfPath: null,
+      runningFilePath: null,
       progress: null,
       error: null,
       isExporting: false,

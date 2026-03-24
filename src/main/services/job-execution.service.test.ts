@@ -55,7 +55,7 @@ class InlinePipelineWorker {
   handlers: Record<string, Array<(value: any) => void>> = {}
 
   constructor(
-    private pdfService: PdfService,
+    private sourceRenderer: PdfService,
     private sliceService: SliceService
   ) {}
 
@@ -72,7 +72,7 @@ class InlinePipelineWorker {
         message.settings,
         message.versionPath,
         message.prefix,
-        this.pdfService,
+        this.sourceRenderer,
         this.sliceService,
         (progress) => this.emit('message', { type: 'progress', data: progress })
       ).then((result) => {
@@ -103,12 +103,11 @@ class TestableJobExecutionService extends JobExecutionService {
     settingsService: SettingsService,
     fileService: FileService,
     sliceService: SliceService,
-    pdfService: PdfService,
     previewService: PreviewService,
     jobRepository: JobRepository,
     private inlineWorker: InlinePipelineWorker
   ) {
-    super(settingsService, fileService, sliceService, pdfService, previewService, jobRepository)
+    super(settingsService, fileService, sliceService, previewService, jobRepository)
   }
 
   protected override createWorker(workerPath: string): Worker {
@@ -122,7 +121,7 @@ describe('JobExecutionService', () => {
   let settingsService: SettingsService
   let fileService: FileService
   let sliceService: SliceService
-  let pdfService: PdfService
+  let pdfService: PdfService  // used as SourceRenderer for InlinePipelineWorker
   let previewService: PreviewService
   let jobRepository: JobRepository
   let service: TestableJobExecutionService
@@ -144,7 +143,6 @@ describe('JobExecutionService', () => {
       settingsService,
       fileService,
       sliceService,
-      pdfService,
       previewService,
       jobRepository,
       new InlinePipelineWorker(pdfService, sliceService)
@@ -163,7 +161,7 @@ describe('JobExecutionService', () => {
     it('should complete a fixed-mode slice job end-to-end', async () => {
       const progressCalls: JobProgress[] = []
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'test_job',
         prefix: 'test',
         mode: 'fixed',
@@ -210,7 +208,7 @@ describe('JobExecutionService', () => {
 
     it('should always output png regardless of requested format (master format)', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'jpg_test',
         prefix: 'jpg',
         mode: 'fixed',
@@ -235,14 +233,13 @@ describe('JobExecutionService', () => {
         settingsService,
         fileService,
         sliceService,
-        pdfService,
         previewService,
         jobRepository,
         fakeWorker
       )
 
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'worker_path_test',
         prefix: 'worker',
         mode: 'fixed',
@@ -260,7 +257,7 @@ describe('JobExecutionService', () => {
   describe('execute — auto mode', () => {
     it('should complete an auto-mode slice job', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'auto_test',
         prefix: 'auto',
         mode: 'auto',
@@ -282,7 +279,7 @@ describe('JobExecutionService', () => {
     it('should emit progress callbacks in correct order', async () => {
       const stepKeys: string[] = []
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'progress_test',
         prefix: 'prog',
         mode: 'fixed',
@@ -303,7 +300,7 @@ describe('JobExecutionService', () => {
     it('should have percent 0 at start and 100 at end', async () => {
       const percents: number[] = []
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'pct_test',
         prefix: 'pct',
         mode: 'fixed',
@@ -326,7 +323,7 @@ describe('JobExecutionService', () => {
   describe('error handling', () => {
     it('should clean up version folder on PDF copy failure', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: '/nonexistent/fake.pdf',
+        sourceFilePath: '/nonexistent/fake.pdf',
         title: 'fail_test',
         prefix: 'fail',
         mode: 'fixed',
@@ -344,7 +341,7 @@ describe('JobExecutionService', () => {
 
     it('should throw and not save meta on failure', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: '/nonexistent/fake.pdf',
+        sourceFilePath: '/nonexistent/fake.pdf',
         title: 'fail_test',
         prefix: 'fail',
         mode: 'fixed',
@@ -362,7 +359,7 @@ describe('JobExecutionService', () => {
   describe('title fallback', () => {
     it('should use payload title when provided', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'Custom Title',
         prefix: 'test',
         mode: 'fixed',
@@ -376,7 +373,7 @@ describe('JobExecutionService', () => {
 
     it('should fallback to PDF filename when title is empty', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: '',
         prefix: 'test',
         mode: 'fixed',
@@ -392,7 +389,7 @@ describe('JobExecutionService', () => {
   describe('global index across pages', () => {
     it('should have unique sequential indices across all files', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'idx_test',
         prefix: 'idx',
         mode: 'fixed',
@@ -410,7 +407,7 @@ describe('JobExecutionService', () => {
 
     it('should assign pageNumber to each file', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'page_test',
         prefix: 'page',
         mode: 'fixed',
@@ -429,7 +426,7 @@ describe('JobExecutionService', () => {
   describe('settings defaults', () => {
     it('should use settings defaults when payload options are not provided', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'defaults_test',
         prefix: 'def',
         mode: 'fixed',
@@ -447,7 +444,7 @@ describe('JobExecutionService', () => {
   describe('PDF copy shared across versions', () => {
     it('should copy PDF only once for multiple runs with same prefix', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'copy_test',
         prefix: 'shared',
         mode: 'fixed',
@@ -466,14 +463,14 @@ describe('JobExecutionService', () => {
       const copiedPdf = join(jobDir1, 'source', 'test.pdf')
       expect(existsSync(copiedPdf)).toBe(true)
 
-      // copiedPdfPath in both metas should point to the same file
-      expect(meta1.copiedPdfPath).toBe(meta2.copiedPdfPath)
-      expect(meta1.copiedPdfPath).toBe(copiedPdf)
+      // copiedSourcePath in both metas should point to the same file
+      expect(meta1.copiedSourcePath).toBe(meta2.copiedSourcePath)
+      expect(meta1.copiedSourcePath).toBe(copiedPdf)
     })
 
     it('should not overwrite existing PDF copy', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'no_overwrite',
         prefix: 'nodup',
         mode: 'fixed',
@@ -498,7 +495,7 @@ describe('JobExecutionService', () => {
 
     it('should have separate version folders but shared source', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'structure_test',
         prefix: 'struct',
         mode: 'fixed',
@@ -527,7 +524,7 @@ describe('JobExecutionService', () => {
   describe('pdfScale', () => {
     it('should render at scale 1.0 producing original PDF point dimensions', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'scale1_test',
         prefix: 'scale1',
         mode: 'fixed',
@@ -546,7 +543,7 @@ describe('JobExecutionService', () => {
 
     it('should render at scale 2.0 producing double dimensions', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'scale2_test',
         prefix: 'scale2',
         mode: 'fixed',
@@ -565,7 +562,7 @@ describe('JobExecutionService', () => {
 
     it('should render at scale 4.0 producing quadruple dimensions', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'scale4_test',
         prefix: 'scale4',
         mode: 'fixed',
@@ -584,7 +581,7 @@ describe('JobExecutionService', () => {
 
     it('should default to settings pdfScale (4.0) when not specified in payload', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'scale_default_test',
         prefix: 'scaledef',
         mode: 'fixed',
@@ -603,7 +600,7 @@ describe('JobExecutionService', () => {
 
     it('should produce different slice counts at different scales with same sliceHeight', async () => {
       const makePayload = (scale: number): RunSliceJobPayload => ({
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: `slice_count_${scale}`,
         prefix: `sc${scale}`,
         mode: 'fixed',
@@ -625,7 +622,7 @@ describe('JobExecutionService', () => {
   describe('prefix sanitization', () => {
     it('should sanitize prefix with special characters', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'sanitize_test',
         prefix: '  hello world!!  ',
         mode: 'fixed',
@@ -643,7 +640,7 @@ describe('JobExecutionService', () => {
   describe('thumbnail generation', () => {
     it('should generate thumbnails for each slice', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'thumb_test',
         prefix: 'thumb',
         mode: 'fixed',
@@ -667,7 +664,7 @@ describe('JobExecutionService', () => {
 
     it('should generate thumbnails in thumbs directory', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'thumb_dir_test',
         prefix: 'td',
         mode: 'fixed',
@@ -685,7 +682,7 @@ describe('JobExecutionService', () => {
 
     it('should generate thumbnails for auto mode', async () => {
       const payload: RunSliceJobPayload = {
-        sourcePdfPath: testPdfPath,
+        sourceFilePath: testPdfPath,
         title: 'thumb_auto_test',
         prefix: 'ta',
         mode: 'auto',

@@ -3,10 +3,10 @@ import {rmSync} from 'fs'
 import {basename, join} from 'path'
 import {v4 as uuid} from 'uuid'
 import type {AppSettings, JobMeta, JobProgress, RunSliceJobPayload, SliceFileInfo} from '@shared/types'
+import {stripExtension} from '@shared/constants/supported-formats'
 import type {SettingsService} from './settings.service'
 import type {FileService} from './file.service'
 import type {SliceService} from './slice.service'
-import type {PdfService} from './pdf.service'
 import type {PreviewService} from './preview.service'
 import type {JobRepository} from './job-repository'
 import type {PipelineResult} from './slice-pipeline'
@@ -18,7 +18,6 @@ export class JobExecutionService {
     private settingsService: SettingsService,
     private fileService: FileService,
     private sliceService: SliceService,
-    private pdfService: PdfService,
     private previewService: PreviewService,
     private jobRepository: JobRepository
   ) {}
@@ -27,17 +26,17 @@ export class JobExecutionService {
     payload: RunSliceJobPayload,
     prefix: string,
     versionPath: string,
-    copiedPdfPath: string,
+    copiedSourcePath: string,
     files: (SliceFileInfo & { pageNumber: number })[],
     pageCount: number
   ): JobMeta {
-    const title = payload.title || basename(payload.sourcePdfPath).replace(/\.pdf$/i, '')
+    const title = payload.title || stripExtension(basename(payload.sourceFilePath))
     return {
       id: uuid(),
       title,
       prefix,
-      sourcePdfPath: payload.sourcePdfPath,
-      copiedPdfPath,
+      sourceFilePath: payload.sourceFilePath,
+      copiedSourcePath,
       createdAt: new Date().toISOString(),
       mode: payload.mode,
       pageCount,
@@ -74,9 +73,9 @@ export class JobExecutionService {
   ): Promise<JobMeta> {
     const settings = this.settingsService.load()
     const prefix = this.fileService.sanitizePrefix(payload.prefix)
-    const folderName = await this.jobRepository.resolveFolderForPdf(
-      this.fileService.sanitizePdfFolderName(payload.sourcePdfPath),
-      payload.sourcePdfPath
+    const folderName = await this.jobRepository.resolveFolderForSource(
+      this.fileService.sanitizeSourceFolderName(payload.sourceFilePath),
+      payload.sourceFilePath
     )
     const versionPath = this.fileService.createVersionFolder(settings.baseDir, folderName)
 
@@ -107,11 +106,11 @@ export class JobExecutionService {
         if (msg.type === 'progress') {
           onProgress(msg.data)
         } else if (msg.type === 'result') {
-          const { files, pageCount, copiedPdfPath } = msg.data as PipelineResult
+          const { files, pageCount, copiedSourcePath } = msg.data as PipelineResult
 
           onProgress({ stepKey: 'progressPreview', current: 0, total: 0, percent: 95 })
 
-          const meta = this.buildMeta(payload, prefix, versionPath, copiedPdfPath, files, pageCount)
+          const meta = this.buildMeta(payload, prefix, versionPath, copiedSourcePath, files, pageCount)
 
           try {
             await this.saveAndGeneratePreview(meta, settings)

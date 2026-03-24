@@ -20,8 +20,8 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => navigate }
 })
 
-vi.mock('../hooks/usePdfDrop', () => ({
-  usePdfDrop: () => ({ isDragging: false, dropProps: {} })
+vi.mock('../hooks/useFileDrop', () => ({
+  useFileDrop: () => ({ isDragging: false, dropProps: {} })
 }))
 
 vi.mock('../hooks/useStorageInfo', () => ({
@@ -83,14 +83,14 @@ describe('WorkspacePage', () => {
     } as any)
     useWorkspaceStore.setState({ optionsMap: {}, _settings: null })
     useJobStore.setState({
-      pdfList: [{ path: '/pdfs/episode1.pdf', name: 'episode1' }],
-      activePdfPath: '/pdfs/episode1.pdf',
+      fileList: [{ path: '/pdfs/episode1.pdf', name: 'episode1' }],
+      activeFilePath: '/pdfs/episode1.pdf',
       recentJobs: [],
       currentJob: null,
       sessionResults: [],
       isLoading: false,
       isRunning: false,
-      runningPdfPath: null,
+      runningFilePath: null,
       progress: null,
       error: null,
       isExporting: false,
@@ -116,8 +116,8 @@ describe('WorkspacePage', () => {
           id: 'job-1',
           title: 'episode1',
           prefix: 'preset_prefix',
-          sourcePdfPath: '/pdfs/episode1.pdf',
-          copiedPdfPath: '/base/jobs/source.pdf',
+          sourceFilePath: '/pdfs/episode1.pdf',
+          copiedSourcePath: '/base/jobs/source.pdf',
           createdAt: new Date().toISOString(),
           mode: 'auto',
           pageCount: 1,
@@ -144,8 +144,8 @@ describe('WorkspacePage', () => {
       id: 'job-existing',
       title: 'episode1',
       prefix: 'preset_prefix',
-      sourcePdfPath: '/pdfs/episode1.pdf',
-      copiedPdfPath: '/base/jobs/source.pdf',
+      sourceFilePath: '/pdfs/episode1.pdf',
+      copiedSourcePath: '/base/jobs/source.pdf',
       createdAt: new Date().toISOString(),
       mode: 'auto' as const,
       pageCount: 1,
