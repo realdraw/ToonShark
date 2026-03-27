@@ -161,9 +161,14 @@ export default function WorkspacePage() {
       <div className="flex-shrink-0 bg-surface border-b border-border flex items-center">
         <div className="flex overflow-x-auto flex-1">
           {fileList.map((file) => (
-            <button
+            <div
               key={file.path}
+              role="button"
+              tabIndex={0}
               onClick={() => setActiveFile(file.path)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') setActiveFile(file.path)
+              }}
               className={`group flex items-center gap-2 px-4 py-2.5 text-sm cursor-pointer border-b-2 transition whitespace-nowrap ${
                 file.path === activeFilePath
                   ? 'border-blue-500 text-primary bg-base'
@@ -181,7 +186,7 @@ export default function WorkspacePage() {
               >
                 x
               </button>
-            </button>
+            </div>
           ))}
         </div>
         <button

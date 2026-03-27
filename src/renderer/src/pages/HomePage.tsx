@@ -149,12 +149,20 @@ export default function HomePage() {
           <h2 className="text-lg font-semibold text-secondary mb-3">{t.openFiles}</h2>
           <div className="flex flex-wrap gap-2">
             {fileList.map((file) => (
-              <button
+              <div
                 key={file.path}
+                role="button"
+                tabIndex={0}
                 className="group flex items-center gap-2 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition cursor-pointer"
                 onClick={() => {
                   setActiveFile(file.path)
                   navigate('/workspace')
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    setActiveFile(file.path)
+                    navigate('/workspace')
+                  }
                 }}
               >
                 {isRunning && runningFilePath === file.path ? (
@@ -173,7 +181,7 @@ export default function HomePage() {
                 >
                   x
                 </button>
-              </button>
+              </div>
             ))}
           </div>
         </div>

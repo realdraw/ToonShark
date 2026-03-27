@@ -36,6 +36,9 @@ export default function SliceDetailPage() {
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 })
   const [thumbnailDir, setThumbnailDir] = useState<string | null>(null)
 
+  // Zoom state
+  const [scale, setScale] = useState(1)
+
   useEffect(() => {
     window.api.loadSettings().then((s) => {
       setScrollAmount(s.preview.scrollAmount ?? 300)
@@ -69,7 +72,81 @@ export default function SliceDetailPage() {
     setDisplaySize({ width: 0, height: 0 })
     setCropTarget(null)
     setShowThumbnailMenu(false)
+    setScale(1)
   }, [sliceIndex])
+
+  // Zoom handler — native event listener with { passive: false }
+  const scaleRef = useRef(scale)
+  const displaySizeRef = useRef(displaySize)
+  scaleRef.current = scale
+  displaySizeRef.current = displaySize
+
+  useEffect(() => {
+    const container = viewerRef.current
+    if (!container) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      e.stopPropagation()
+
+      const s = scaleRef.current
+      const delta = e.deltaY > 0 ? -0.1 : 0.1
+      const newScale = Math.min(5, Math.max(0.25, +(s + delta).toFixed(2)))
+      if (newScale === s) return
+      const ratio = newScale / s
+
+      // Keep cursor position stable by adjusting scroll
+      const rect = container.getBoundingClientRect()
+      const cursorX = e.clientX - rect.left + container.scrollLeft
+      const cursorY = e.clientY - rect.top + container.scrollTop
+
+      setScale(newScale)
+
+      requestAnimationFrame(() => {
+        container.scrollLeft = cursorX * ratio - (e.clientX - rect.left)
+        container.scrollTop = cursorY * ratio - (e.clientY - rect.top)
+      })
+    }
+
+    container.addEventListener('wheel', handleWheel, { passive: false })
+    return () => container.removeEventListener('wheel', handleWheel)
+  }, [sliceIndex, currentJob])
+
+  const resetZoom = useCallback(() => {
+    setScale(1)
+  }, [])
+
+  const zoomIn = useCallback(() => {
+    const container = viewerRef.current
+    if (!container) return
+    const oldScale = scaleRef.current
+    const newScale = Math.min(5, +(oldScale + 0.25).toFixed(2))
+    // Zoom toward center of viewport
+    const centerX = container.clientWidth / 2 + container.scrollLeft
+    const centerY = container.clientHeight / 2 + container.scrollTop
+    const ratio = newScale / oldScale
+    setScale(newScale)
+    requestAnimationFrame(() => {
+      container.scrollLeft = centerX * ratio - container.clientWidth / 2
+      container.scrollTop = centerY * ratio - container.clientHeight / 2
+    })
+  }, [])
+
+  const zoomOut = useCallback(() => {
+    const container = viewerRef.current
+    if (!container) return
+    const oldScale = scaleRef.current
+    const newScale = Math.max(0.25, +(oldScale - 0.25).toFixed(2))
+    const centerX = container.clientWidth / 2 + container.scrollLeft
+    const centerY = container.clientHeight / 2 + container.scrollTop
+    const ratio = newScale / oldScale
+    setScale(newScale)
+    requestAnimationFrame(() => {
+      container.scrollLeft = centerX * ratio - container.clientWidth / 2
+      container.scrollTop = centerY * ratio - container.clientHeight / 2
+    })
+  }, [])
 
   const file = currentJob?.files.find((f) => f.index === sliceIndex)
   const totalSlices = currentJob?.files.length ?? 0
@@ -355,39 +432,53 @@ export default function SliceDetailPage() {
         </div>
 
         {/* Main image viewer */}
-        <div ref={viewerRef} tabIndex={-1} className="flex-1 overflow-auto flex items-start justify-center p-4 outline-none">
-          <div className="relative inline-block">
-            <img
-              src={toLocalFileUrl(file.path)}
-              alt={file.name}
-              className="max-w-full block"
-              style={{ imageRendering: 'auto' }}
-              onLoad={(e) => {
-                setImageLoaded(true)
-                setDisplaySize({ width: e.currentTarget.clientWidth, height: e.currentTarget.clientHeight })
-              }}
-            />
-
-            {/* Crop overlay — inside relative wrapper so it covers the full image */}
-            {cropTarget && imageLoaded && displaySize.width > 0 && (
-              <CropOverlay
-                aspectRatio={cropTarget.thumbnailSpec.width / cropTarget.thumbnailSpec.height}
-                imageNaturalWidth={file.width}
-                imageNaturalHeight={file.height}
-                displayWidth={displaySize.width}
-                displayHeight={displaySize.height}
-                scrollTop={cropScrollInfo.scrollTop}
-                viewerHeight={cropScrollInfo.viewerHeight}
-                onConfirm={handleCropConfirm}
-                onCancel={handleCropCancel}
+        <div
+          ref={viewerRef}
+          tabIndex={-1}
+          className="flex-1 overflow-auto relative outline-none"
+        >
+          <div
+            className="flex items-start justify-center p-4"
+            style={{ minWidth: '100%', minHeight: '100%' }}
+          >
+            <div className="relative inline-block">
+              <img
+                src={toLocalFileUrl(file.path)}
+                alt={file.name}
+                className="block"
+                style={{
+                  imageRendering: 'auto',
+                  ...(scale === 1
+                    ? { maxWidth: '100%' }
+                    : { width: `${displaySize.width * scale}px` }),
+                }}
+                onLoad={(e) => {
+                  setImageLoaded(true)
+                  setDisplaySize({ width: e.currentTarget.clientWidth, height: e.currentTarget.clientHeight })
+                }}
               />
-            )}
+
+              {/* Crop overlay — inside relative wrapper so it covers the full image */}
+              {cropTarget && imageLoaded && displaySize.width > 0 && (
+                <CropOverlay
+                  aspectRatio={cropTarget.thumbnailSpec.width / cropTarget.thumbnailSpec.height}
+                  imageNaturalWidth={file.width}
+                  imageNaturalHeight={file.height}
+                  displayWidth={displaySize.width * scale}
+                  displayHeight={displaySize.height * scale}
+                  scrollTop={cropScrollInfo.scrollTop}
+                  viewerHeight={cropScrollInfo.viewerHeight}
+                  onConfirm={handleCropConfirm}
+                  onCancel={handleCropCancel}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Scroll buttons */}
-      <div className="fixed right-6 bottom-6 flex flex-col gap-2">
+      {/* Zoom controls + Scroll buttons */}
+      <div className="fixed right-6 bottom-6 flex flex-col items-center gap-2">
         <button
           onClick={() => scroll('up')}
           className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-lg flex items-center justify-center shadow-lg transition"
@@ -400,6 +491,31 @@ export default function SliceDetailPage() {
         >
           &darr;
         </button>
+        <div className="h-px w-8 bg-divider" />
+        <button
+          onClick={zoomIn}
+          className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-lg flex items-center justify-center shadow-lg transition"
+          title="Zoom in"
+        >
+          +
+        </button>
+        <span className="text-xs text-secondary font-medium select-none">{Math.round(scale * 100)}%</span>
+        <button
+          onClick={zoomOut}
+          className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-lg flex items-center justify-center shadow-lg transition"
+          title="Zoom out"
+        >
+          &minus;
+        </button>
+        {scale !== 1 && (
+          <button
+            onClick={resetZoom}
+            className="w-10 h-10 bg-elevated hover:bg-hover-elevated rounded-full text-primary text-xs flex items-center justify-center shadow-lg transition"
+            title="Reset zoom"
+          >
+            1:1
+          </button>
+        )}
       </div>
     </div>
   )
