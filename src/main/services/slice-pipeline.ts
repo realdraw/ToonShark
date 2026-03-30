@@ -104,6 +104,8 @@ export async function runSlicePipeline(
         ? await sliceService.fixedSlice(rawInput, {
             sliceHeight: payload.options.sliceHeight ?? settings.defaultSliceHeight,
             startOffset: payload.options.startOffset ?? 0,
+            minSliceHeight:
+              payload.options.minSliceHeight ?? settings.autoSlice.minSliceHeight,
             prefix,
             padding: settings.naming.filenamePadding,
             outputDir: slicesDir,

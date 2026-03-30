@@ -157,6 +157,16 @@ export function OptionPanel({
               className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
             />
           </OptionField>
+          <OptionField compact label={t.minSliceHeightLabel} desc={t.minSliceHeightDesc}>
+            <input
+              type="number"
+              value={options.minSliceHeight}
+              onChange={(e) => onOptionChange('minSliceHeight', Number(e.target.value))}
+              min={0}
+              max={2000}
+              className="w-full px-2 py-1.5 bg-input border border-border-subtle rounded text-sm"
+            />
+          </OptionField>
         </div>
       )}
 

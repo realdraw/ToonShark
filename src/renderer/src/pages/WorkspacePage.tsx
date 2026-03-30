@@ -89,7 +89,7 @@ export default function WorkspacePage() {
     const prefix = opts.prefix || activeFile.name
     const options =
       opts.mode === 'fixed'
-        ? { sliceHeight: opts.sliceHeight, startOffset: opts.startOffset }
+        ? { sliceHeight: opts.sliceHeight, startOffset: opts.startOffset, minSliceHeight: opts.minSliceHeight }
         : { whiteThreshold: opts.whiteThreshold, minWhiteRun: opts.minWhiteRun, minSliceHeight: opts.minSliceHeight, cutPosition: opts.cutPosition }
 
     // Duplicate detection: check if a job with the same settings already exists
@@ -100,6 +100,7 @@ export default function WorkspacePage() {
       if (opts.mode === 'fixed') {
         return job.options.sliceHeight === opts.sliceHeight
           && job.options.startOffset === opts.startOffset
+          && job.options.minSliceHeight === opts.minSliceHeight
       }
       return job.options.whiteThreshold === opts.whiteThreshold
         && job.options.minWhiteRun === opts.minWhiteRun

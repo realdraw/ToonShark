@@ -117,6 +117,49 @@ describe('SliceService', () => {
       expect(ranges[0]).toEqual({ y: 0, height: 100 })
       expect(ranges[99]).toEqual({ y: 9900, height: 100 })
     })
+
+    // minSliceHeight merge tests for fixed mode
+    it('should merge last slice with previous when smaller than minSliceHeight', () => {
+      // 910px / 300px → 300+300+300+10 → last 10px < 100 → merge → 300+300+310
+      const ranges = service.computeFixedSliceRanges(910, 300, 0, 100)
+      expect(ranges).toEqual([
+        { y: 0, height: 300 },
+        { y: 300, height: 300 },
+        { y: 600, height: 310 }
+      ])
+    })
+
+    it('should not merge when last slice meets minSliceHeight', () => {
+      // 2500px / 1000px → 1000+1000+500 → 500 >= 100 → no merge
+      const ranges = service.computeFixedSliceRanges(2500, 1000, 0, 100)
+      expect(ranges).toEqual([
+        { y: 0, height: 1000 },
+        { y: 1000, height: 1000 },
+        { y: 2000, height: 500 }
+      ])
+    })
+
+    it('should not merge when minSliceHeight is 0', () => {
+      const ranges = service.computeFixedSliceRanges(910, 300, 0, 0)
+      expect(ranges).toHaveLength(4)
+      expect(ranges[3]).toEqual({ y: 900, height: 10 })
+    })
+
+    it('should not merge single slice even if smaller than minSliceHeight', () => {
+      // 50px image, sliceHeight 1000 → single slice of 50px, no merge needed
+      const ranges = service.computeFixedSliceRanges(50, 1000, 0, 100)
+      expect(ranges).toEqual([{ y: 0, height: 50 }])
+    })
+
+    it('should merge with offset applied', () => {
+      // 1000px image, offset 100, sliceHeight 400 → starts at 100
+      // 400+400+100 → last 100px < 200 → merge → 400+500
+      const ranges = service.computeFixedSliceRanges(1000, 400, 100, 200)
+      expect(ranges).toEqual([
+        { y: 100, height: 400 },
+        { y: 500, height: 500 }
+      ])
+    })
   })
 
   // ──────────────────────────────────────────

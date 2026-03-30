@@ -37,6 +37,7 @@ async function getImageDimensions(input: ImageInput): Promise<{ width: number; h
 type FixedSliceOptions = {
   sliceHeight: number
   startOffset: number
+  minSliceHeight?: number
   prefix: string
   padding: number
   outputDir: string
@@ -63,7 +64,8 @@ export class SliceService {
   computeFixedSliceRanges(
     imageHeight: number,
     sliceHeight: number,
-    startOffset: number
+    startOffset: number,
+    minSliceHeight: number = 0
   ): SliceRange[] {
     const ranges: SliceRange[] = []
     let currentY = startOffset
@@ -75,6 +77,16 @@ export class SliceService {
       const h = Math.min(sliceHeight, remaining)
       ranges.push({ y: currentY, height: h })
       currentY += sliceHeight
+    }
+
+    // Merge last slice with previous if smaller than minSliceHeight
+    if (minSliceHeight > 0 && ranges.length > 1) {
+      const last = ranges[ranges.length - 1]
+      if (last.height < minSliceHeight) {
+        const prev = ranges[ranges.length - 2]
+        ranges[ranges.length - 2] = { y: prev.y, height: prev.height + last.height }
+        ranges.pop()
+      }
     }
 
     return ranges
@@ -211,7 +223,8 @@ export class SliceService {
     const ranges = this.computeFixedSliceRanges(
       height,
       options.sliceHeight,
-      options.startOffset
+      options.startOffset,
+      options.minSliceHeight ?? 0
     )
 
     return this.sliceAndSave(imageInput, width, ranges, options)

@@ -606,7 +606,7 @@ describe('JobExecutionService', () => {
         mode: 'fixed',
 
         pdfScale: scale,
-        options: { sliceHeight: 200 }
+        options: { sliceHeight: 200, minSliceHeight: 0 }
       })
 
       const meta1 = await service.execute(makePayload(1.0), () => {})

@@ -27,7 +27,7 @@ function OptionsSummary({ job, t }: { job: JobMeta; t: TranslationKeys }) {
       {mode === 'auto' && options.minWhiteRun != null && (
         <OptionTag>minRun {options.minWhiteRun}</OptionTag>
       )}
-      {mode === 'auto' && options.minSliceHeight != null && (
+      {options.minSliceHeight != null && (
         <OptionTag>minH {options.minSliceHeight}</OptionTag>
       )}
       {mode === 'auto' && options.cutPosition && (

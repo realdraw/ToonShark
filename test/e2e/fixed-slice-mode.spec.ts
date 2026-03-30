@@ -52,7 +52,7 @@ base.describe.serial('fixed slice mode', () => {
   base.test('runs a fixed mode slice job with custom height', async () => {
     await page.getByRole('button', { name: /^Fixed$|^고정$/ }).click()
 
-    const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
+    const heightInput = page.locator('label').filter({ hasText: /^Slice Height|^슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
     await heightInput.fill('500')
 
     await page.getByRole('button', { name: /^Run$|^실행$/ }).click()
@@ -71,7 +71,7 @@ base.describe.serial('fixed slice mode', () => {
   base.test('runs a fixed mode slice with start offset', async () => {
     await page.getByRole('button', { name: /^Fixed$|^고정$/ }).click()
 
-    const heightInput = page.locator('label').filter({ hasText: /Slice Height|슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
+    const heightInput = page.locator('label').filter({ hasText: /^Slice Height|^슬라이스 높이/ }).locator('../..').locator('input[type="number"]')
     await heightInput.fill('500')
 
     const offsetInput = page.locator('label').filter({ hasText: /Start Offset|시작 오프셋/ }).locator('../..').locator('input[type="number"]')
