@@ -20,13 +20,13 @@
         "id": "alltoon",
         "episode": {
           "width": 760,
-          "format": "png",
+          "format": "jpg",
           "maxFileSizeMB": null
         },
         "thumbnail": {
           "width": 720,
           "height": 972,
-          "format": "png",
+          "format": "jpg",
           "maxFileSizeMB": null
         }
       },
@@ -64,6 +64,12 @@
           "width": 720,
           "format": "jpg",
           "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 640,
+          "height": 496,
+          "format": "jpg",
+          "maxFileSizeMB": 0.02
         }
       },
       {
