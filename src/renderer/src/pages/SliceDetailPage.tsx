@@ -211,6 +211,9 @@ export default function SliceDetailPage() {
         label: t.thumbnailOpenFolder,
         onClick: () => window.api.openPath(dir)
       })
+      if (result.oversizedWarning) {
+        addToast('error', t.thumbnailOversized(result.oversizedWarning))
+      }
     } catch {
       addToast('error', t.thumbnailFailed)
     }

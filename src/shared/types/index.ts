@@ -195,6 +195,7 @@ export type CaptureThumbnailResult = {
   height: number
   upscaled: boolean
   sourceSize?: { width: number; height: number }
+  oversizedWarning?: string
 }
 
 export type RunSliceJobPayload = {

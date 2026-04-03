@@ -7,6 +7,7 @@ import type {TranslationKeys} from '../i18n/en'
 
 type OptionPanelProps = {
   filePath: string | null
+  resolvedFilePath?: string | null
   options: PdfOptions
   onOptionChange: <K extends keyof PdfOptions>(key: K, value: PdfOptions[K]) => void
   isRunning: boolean
@@ -19,22 +20,25 @@ type OptionPanelProps = {
 }
 
 export function OptionPanel({
-  filePath, options, onOptionChange,
+  filePath, resolvedFilePath, options, onOptionChange,
   isRunning, canRun, progress, error, runningFileName,
   onRun, t
 }: OptionPanelProps) {
   const [pageDims, setPageDims] = useState<{ width: number; height: number } | null>(null)
   const showPdfScale = filePath ? isPdfFile(filePath) : true
 
+  // Use copiedSourcePath (resolvedFilePath) when available, fall back to original
+  const dimensionPath = resolvedFilePath ?? filePath
+
   useEffect(() => {
     setPageDims(null)
-    if (!filePath) return
+    if (!dimensionPath) return
     let cancelled = false
-    window.api.getSourceDimensions(filePath)
+    window.api.getSourceDimensions(dimensionPath)
       .then((dims) => { if (!cancelled) setPageDims(dims) })
       .catch(() => { if (!cancelled) setPageDims(null) })
     return () => { cancelled = true }
-  }, [filePath])
+  }, [dimensionPath])
 
   const set = <K extends keyof PdfOptions>(key: K) =>
     (value: PdfOptions[K]) => onOptionChange(key, value)

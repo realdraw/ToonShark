@@ -186,6 +186,7 @@ export interface TranslationKeys {
   thumbnailCancel: string
   thumbnailSuccess: string
   thumbnailSuccessUpscaled: (srcW: number, srcH: number) => string
+  thumbnailOversized: (sizeInfo: string) => string
   thumbnailFailed: string
   thumbnailNoPlatforms: string
   thumbnailOpenFolder: string
@@ -402,6 +403,7 @@ const en: TranslationKeys = {
   thumbnailCancel: 'Cancel',
   thumbnailSuccess: 'Thumbnail saved',
   thumbnailSuccessUpscaled: (srcW: number, srcH: number) => `Thumbnail saved (upscaled from ${srcW}x${srcH})`,
+  thumbnailOversized: (sizeInfo: string) => `Warning: Thumbnail exceeds size limit (${sizeInfo})`,
   thumbnailFailed: 'Thumbnail capture failed',
   thumbnailNoPlatforms: 'No platforms with thumbnail spec',
   thumbnailOpenFolder: 'Open Folder',

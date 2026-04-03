@@ -81,6 +81,13 @@ export default function WorkspacePage() {
 
   const activeFileStorage = storageInfo?.sources.find((p) => p.sourceFilePath === activeFilePath) ?? null
 
+  // Prefer copiedSourcePath from completed jobs to avoid ENOENT on deleted originals
+  const resolvedFilePath = (() => {
+    if (!activeFilePath) return null
+    const jobWithCopy = activeJobs.find((j) => j.copiedSourcePath)
+    return jobWithCopy?.copiedSourcePath ?? activeFilePath
+  })()
+
   const addToast = useToastStore((s) => s.addToast)
 
   const handleRun = async () => {
@@ -207,6 +214,7 @@ export default function WorkspacePage() {
       <div className="flex flex-1 overflow-hidden">
         <OptionPanel
           filePath={activeFilePath}
+          resolvedFilePath={resolvedFilePath}
           options={opts}
           onOptionChange={handleOptionChange}
           isRunning={isRunning} canRun={!!activeFilePath} progress={progress} error={error}

@@ -266,17 +266,20 @@ export class ExportService {
     const outputName = this.nextThumbnailName(outputDir, baseName, safePlatformId, ext)
     const outputPath = join(outputDir, outputName)
 
-    const { oversized } = await this.writeWithFormat(pipeline, outputPath, ext, thumbnailSpec.maxFileSizeMB, jpgQuality)
+    const { buffer, oversized } = await this.writeWithFormat(pipeline, outputPath, ext, thumbnailSpec.maxFileSizeMB, jpgQuality)
     if (oversized) {
       this.logger.warn(`Thumbnail ${outputName} exceeds size limit (quality: ${jpgQuality})`)
     }
+
+    const sizeMB = buffer.length / (1024 * 1024)
 
     return {
       outputPath,
       width: thumbnailSpec.width,
       height: thumbnailSpec.height,
       upscaled,
-      ...(upscaled ? { sourceSize: { width: cropW, height: cropH } } : {})
+      ...(upscaled ? { sourceSize: { width: cropW, height: cropH } } : {}),
+      ...(oversized ? { oversizedWarning: `${sizeMB.toFixed(2)}MB / ${thumbnailSpec.maxFileSizeMB}MB` } : {})
     }
   }
 

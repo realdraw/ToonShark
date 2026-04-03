@@ -202,6 +202,7 @@ const ko: TranslationKeys = {
   thumbnailCancel: '취소',
   thumbnailSuccess: '썸네일 저장 완료',
   thumbnailSuccessUpscaled: (srcW: number, srcH: number) => `썸네일 저장 완료 (${srcW}x${srcH}에서 업스케일)`,
+  thumbnailOversized: (sizeInfo: string) => `경고: 썸네일 용량 초과 (${sizeInfo})`,
   thumbnailFailed: '썸네일 캡처 실패',
   thumbnailNoPlatforms: '썸네일 스펙이 있는 플랫폼이 없습니다',
   thumbnailOpenFolder: '폴더 열기',
