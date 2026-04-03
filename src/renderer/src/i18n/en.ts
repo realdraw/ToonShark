@@ -381,7 +381,8 @@ const en: TranslationKeys = {
       ridi: 'Ridi', alltoon: 'Alltoon', watcha: 'WATCHA',
       onestore: 'ONE Store', mrblue: 'Mr.Blue', kakaopage: 'KakaoPage',
       bomtoon: 'Bomtoon', lezhin: 'Lezhin Comics', naverseries: 'Naver Series',
-      oreum: 'Oreum Media', bookpal: 'Bookpal'
+      oreum: 'Oreum Media', bookpal: 'Bookpal',
+      naverwebtoon_submission: 'Naver Webtoon Submission'
     }
     return names[id] ?? id
   },

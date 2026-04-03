@@ -181,7 +181,8 @@ const ko: TranslationKeys = {
       ridi: '리디', alltoon: '올툰', watcha: '왓챠',
       onestore: '원스토어', mrblue: '미스터블루', kakaopage: '카카오페이지',
       bomtoon: '봄툰', lezhin: '레진코믹스', naverseries: '네이버시리즈',
-      oreum: '오름미디어', bookpal: '북팔'
+      oreum: '오름미디어', bookpal: '북팔',
+      naverwebtoon_submission: '네이버웹툰 투고'
     }
     return names[id] ?? id
   },

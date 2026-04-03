@@ -1,143 +1,151 @@
 [
-    {
-        "id": "kr",
-        "platforms": [
-            {
-                "id": "ridi",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": 100
-                },
-                "thumbnail": {
-                    "width": 360,
-                    "height": 522,
-                    "format": "jpg",
-                    "maxFileSizeMB": 2
-                }
-            },
-            {
-                "id": "alltoon",
-                "episode": {
-                    "width": 760,
-                    "format": "png",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 720,
-                    "height": 972,
-                    "format": "png",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "watcha",
-                "episode": {
-                    "width": 1080,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 1080,
-                    "height": 608,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "onestore",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 300,
-                    "height": 300,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "mrblue",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "kakaopage",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 300,
-                    "height": 405,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "bomtoon",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 460,
-                    "height": 280,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "lezhin",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                },
-                "thumbnail": {
-                    "width": 300,
-                    "height": 400,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "naverseries",
-                "episode": {
-                    "width": 1000,
-                    "format": "jpg",
-                    "maxFileSizeMB": 50
-                },
-                "thumbnail": {
-                    "width": 300,
-                    "height": 430,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "oreum",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            },
-            {
-                "id": "bookpal",
-                "episode": {
-                    "width": 720,
-                    "format": "jpg",
-                    "maxFileSizeMB": null
-                }
-            }
-        ]
-    }
+  {
+    "id": "kr",
+    "platforms": [
+      {
+        "id": "ridi",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": 100
+        },
+        "thumbnail": {
+          "width": 360,
+          "height": 522,
+          "format": "jpg",
+          "maxFileSizeMB": 2
+        }
+      },
+      {
+        "id": "alltoon",
+        "episode": {
+          "width": 760,
+          "format": "png",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 720,
+          "height": 972,
+          "format": "png",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "watcha",
+        "episode": {
+          "width": 1080,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 1080,
+          "height": 608,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "onestore",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 300,
+          "height": 300,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "mrblue",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "kakaopage",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 300,
+          "height": 405,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "bomtoon",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 460,
+          "height": 280,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "lezhin",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        },
+        "thumbnail": {
+          "width": 300,
+          "height": 400,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "naverseries",
+        "episode": {
+          "width": 1000,
+          "format": "jpg",
+          "maxFileSizeMB": 50
+        },
+        "thumbnail": {
+          "width": 300,
+          "height": 430,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "oreum",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "bookpal",
+        "episode": {
+          "width": 720,
+          "format": "jpg",
+          "maxFileSizeMB": null
+        }
+      },
+      {
+        "id": "naverwebtoon_submission",
+        "episode": {
+          "width": 690,
+          "format": "jpg",
+          "maxFileSizeMB": 20
+        }
+      }
+    ]
+  }
 ]
