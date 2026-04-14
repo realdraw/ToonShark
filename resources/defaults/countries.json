@@ -153,5 +153,24 @@
         }
       }
     ]
+  },
+  {
+    "id": "jp",
+    "platforms": [
+      {
+        "id": "Piccoma",
+        "episode": {
+          "width": 760,
+          "format": "jpg",
+          "maxFileSizeMB": 1
+        },
+        "thumbnail": {
+          "width": 100,
+          "height": 80,
+          "format": "jpg",
+          "maxFileSizeMB": 1
+        }
+      }
+    ]
   }
 ]

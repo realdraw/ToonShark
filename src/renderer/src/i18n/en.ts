@@ -373,7 +373,8 @@ const en: TranslationKeys = {
   // Country / Platform names (i18n)
   countryName: (id: string) => {
     const names: Record<string, string> = {
-      kr: 'South Korea'
+      kr: 'South Korea',
+      jp: 'Japan'
     }
     return names[id] ?? id
   },
@@ -383,7 +384,8 @@ const en: TranslationKeys = {
       onestore: 'ONE Store', mrblue: 'Mr.Blue', kakaopage: 'KakaoPage',
       bomtoon: 'Bomtoon', lezhin: 'Lezhin Comics', naverseries: 'Naver Series',
       oreum: 'Oreum Media', bookpal: 'Bookpal',
-      naverwebtoon_submission: 'Naver Webtoon Submission'
+      naverwebtoon_submission: 'Naver Webtoon Submission',
+      Piccoma: 'Piccoma'
     }
     return names[id] ?? id
   },
