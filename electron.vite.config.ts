@@ -10,7 +10,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/main/index.ts'),
-          'workers/job.worker': resolve(__dirname, 'src/main/workers/job.worker.ts')
+          'workers/job.worker': resolve(__dirname, 'src/main/workers/job.worker.ts'),
+          'workers/psd.worker': resolve(__dirname, 'src/main/workers/psd.worker.ts')
         }
       }
     },

@@ -1,10 +1,13 @@
+import {stripExtension} from '../constants/supported-formats'
+
 export function toErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
 }
 
 export function extractSourceName(path: string): string {
-  const filename = path.split(/[\\/]/).pop()?.replace(/\.(pdf|jpe?g|png)$/i, '') ?? ''
-  return filename || 'untitled'
+  const basename = path.split(/[\\/]/).pop() ?? ''
+  const stripped = stripExtension(basename)
+  return stripped || 'untitled'
 }
 
 /** @deprecated Use extractSourceName instead */

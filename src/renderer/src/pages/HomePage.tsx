@@ -210,7 +210,7 @@ export default function HomePage() {
 
       {!isLoading && allJobs.length === 0 && (
         <div className="text-center py-20 text-muted border-2 border-dashed border-border-subtle rounded-xl bg-surface-dim hover:border-blue-500/50 hover:bg-blue-600/5 transition-colors cursor-default">
-          <div className="text-4xl mb-4 opacity-40">PDF / JPG / PNG</div>
+          <div className="text-4xl mb-4 opacity-40">PDF / JPG / PNG / PSD</div>
           <p className="text-lg mb-2">{t.noJobsTitle}</p>
           <p className="text-sm mb-4">{t.noJobsDesc}</p>
           <p className="text-xs text-faint">{t.dropFileHere}</p>

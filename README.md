@@ -5,7 +5,7 @@
 <h1 align="center">ToonShark</h1>
 
 <p align="center">
-  A desktop tool that slices webtoon images from PDF and exports them to match each platform's requirements.
+  A desktop tool that slices webtoon images from PDF, image, and PSD files and exports them to match each platform's requirements.
 </p>
 
 <p align="center">
@@ -24,11 +24,11 @@
 
 ## What It Does
 
-ToonShark takes a webtoon PDF, splits it into individual image slices, and exports them in the exact width, format, and file-size limits each publishing platform requires — so you don't have to do it by hand.
+ToonShark takes a webtoon source file (PDF, JPG/PNG, or PSD), splits it into individual image slices, and exports them in the exact width, format, and file-size limits each publishing platform requires — so you don't have to do it by hand.
 
 ### Core workflow
 
-1. **Open a PDF** — drag-and-drop or file picker
+1. **Open a source file** — drag-and-drop or file picker (PDF / JPG / PNG / PSD)
 2. **Slice** — choose Auto (white-margin detection) or Fixed (uniform height) mode
 3. **Preview** — check results on simulated device viewports (iPhone, Galaxy, etc.)
 4. **Export** — batch-export to multiple platforms at once (Ridi, Alltoon, WATCHA, ...)
@@ -36,9 +36,10 @@ ToonShark takes a webtoon PDF, splits it into individual image slices, and expor
 
 ### Key features
 
+- **Multi-format input** — PDF, JPG, PNG, and PSD (Photoshop) files
 - **Auto slice** — detects cut boundaries by analyzing white margins between panels
 - **Fixed slice** — mechanically splits at a uniform pixel height
-- **Multi-PDF workspace** — open and process multiple PDFs in tabs
+- **Multi-file workspace** — open and process multiple source files in tabs
 - **Device preview** — pixel-accurate preview with customizable device presets
 - **Platform export** — resize, convert format (PNG/JPG), and enforce max file-size per platform
 - **Thumbnail capture** — crop a region from any slice and export as a platform thumbnail
@@ -93,6 +94,7 @@ npm run dev
 | Build | electron-vite, Vite 7 |
 | Image processing | Sharp, @napi-rs/canvas |
 | PDF rendering | pdfjs-dist |
+| PSD parsing | ag-psd (worker thread) |
 | Testing | Vitest, Playwright, Testing Library |
 | Language | TypeScript 5 |
 

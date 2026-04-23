@@ -219,7 +219,7 @@ const en: TranslationKeys = {
   recentJobs: 'Recent Jobs',
   noJobsTitle: 'No jobs yet',
   noJobsDesc: 'Open a file to get started',
-  dropFileHere: 'Drop PDF or image files here',
+  dropFileHere: 'Drop PDF, image, or PSD files here',
   runs: (n: number) => `${n} run${n !== 1 ? 's' : ''}`,
   slices: (n: number) => `${n} slice${n !== 1 ? 's' : ''}`,
   preview: 'Preview',

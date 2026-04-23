@@ -18,7 +18,7 @@ const ko: TranslationKeys = {
   recentJobs: '최근 작업',
   noJobsTitle: '작업 내역이 없습니다',
   noJobsDesc: '파일을 열어 시작하세요',
-  dropFileHere: 'PDF 또는 이미지 파일을 여기에 놓으세요',
+  dropFileHere: 'PDF, 이미지, PSD 파일을 여기에 놓으세요',
   runs: (n: number) => `${n}회 실행`,
   slices: (n: number) => `${n}개 슬라이스`,
   preview: '미리보기',

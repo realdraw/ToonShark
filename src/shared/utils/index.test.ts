@@ -39,6 +39,14 @@ describe('extractSourceName', () => {
     expect(extractSourceName('/tmp/comics/')).toBe('untitled')
   })
 
+  it('should strip .psd extension', () => {
+    expect(extractSourceName('/Users/beni/art/011.psd')).toBe('011')
+  })
+
+  it('should strip .PSD extension (case insensitive)', () => {
+    expect(extractSourceName('/tmp/COVER.PSD')).toBe('COVER')
+  })
+
   it('should handle Windows-style backslash paths', () => {
     expect(extractSourceName('C:\\Users\\beni\\comic.pdf')).toBe('comic')
   })

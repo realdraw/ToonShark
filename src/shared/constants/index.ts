@@ -8,6 +8,7 @@ export {
   SUPPORTED_DOCUMENT_EXTENSIONS,
   isSupportedFile,
   isPdfFile,
+  isPsdFile,
   isImageFile,
   getFileExtension,
   stripExtension,

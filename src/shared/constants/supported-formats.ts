@@ -1,5 +1,5 @@
 export const SUPPORTED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png'] as const
-export const SUPPORTED_DOCUMENT_EXTENSIONS = ['.pdf'] as const
+export const SUPPORTED_DOCUMENT_EXTENSIONS = ['.pdf', '.psd'] as const
 export const SUPPORTED_EXTENSIONS = [
   ...SUPPORTED_DOCUMENT_EXTENSIONS,
   ...SUPPORTED_IMAGE_EXTENSIONS
@@ -19,6 +19,10 @@ export function isPdfFile(filePath: string): boolean {
   return getFileExtension(filePath) === '.pdf'
 }
 
+export function isPsdFile(filePath: string): boolean {
+  return getFileExtension(filePath) === '.psd'
+}
+
 export function isImageFile(filePath: string): boolean {
   const ext = getFileExtension(filePath)
   return (SUPPORTED_IMAGE_EXTENSIONS as readonly string[]).includes(ext)
@@ -26,14 +30,15 @@ export function isImageFile(filePath: string): boolean {
 
 /** Strip the file extension from a filename (handles all supported formats) */
 export function stripExtension(filename: string): string {
-  return filename.replace(/\.(pdf|jpe?g|png)$/i, '')
+  return filename.replace(/\.(pdf|psd|jpe?g|png)$/i, '')
 }
 
 /** For Electron dialog filters */
 export function getDialogFilters(): { name: string; extensions: string[] }[] {
   return [
-    { name: 'Supported Files', extensions: ['pdf', 'jpg', 'jpeg', 'png'] },
+    { name: 'Supported Files', extensions: ['pdf', 'psd', 'jpg', 'jpeg', 'png'] },
     { name: 'PDF Files', extensions: ['pdf'] },
+    { name: 'PSD Files', extensions: ['psd'] },
     { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png'] }
   ]
 }
