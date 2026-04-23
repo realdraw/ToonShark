@@ -212,6 +212,15 @@ const ko: TranslationKeys = {
   // Duplicate detection
   toastDuplicateJob: '동일한 설정의 작업이 이미 존재합니다',
 
+  // PSD Merge
+  mergePsdTitle: 'PSD 파일 합치기',
+  mergePsdDesc: '선택한 PSD 파일들을 세로로 이어붙여 하나의 원본으로 엽니다.',
+  mergePsdConfirm: '합치기',
+  mergePsdInProgress: '합치는 중...',
+  mergePsdError: 'PSD 합치기 실패',
+  moveUp: '위로',
+  moveDown: '아래로',
+
   // Toast
   toastJobSuccess: (sliceCount: number) => `분할 완료! ${sliceCount}개 슬라이스 생성`,
   toastJobFailed: '분할 실패',

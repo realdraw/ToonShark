@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useJobStore} from '../stores/jobStore'
 import {useSettingsStore} from '../stores/settingsStore'
@@ -12,7 +12,8 @@ import {useDeleteActions} from '../hooks/useDeleteActions'
 import {OptionPanel} from '../components/OptionPanel'
 import {ResultsPanel} from '../components/ResultsPanel'
 import {DropOverlay} from '../components/DropOverlay'
-import {isPdfFile, getFileExtension} from '@shared/constants'
+import {MergePsdModal} from '../components/MergePsdModal'
+import {isPdfFile, isPsdFile, getFileExtension} from '@shared/constants'
 
 export default function WorkspacePage() {
   const navigate = useNavigate()
@@ -39,6 +40,7 @@ export default function WorkspacePage() {
   const { storageInfo, refreshStorage } = useStorageInfo()
   const { confirmDeleteJob } = useDeleteActions(t, refreshStorage)
   const activeJobs = useMergedJobs(sessionResults, recentJobs, activeFilePath)
+  const [mergeModalPaths, setMergeModalPaths] = useState<string[] | null>(null)
 
   useEffect(() => {
     loadSettings()
@@ -146,6 +148,10 @@ export default function WorkspacePage() {
   }, [activeFilePath, updateOption])
 
   const handleFileDrop = useCallback((paths: string[]) => {
+    if (paths.length >= 2 && paths.every(isPsdFile)) {
+      setMergeModalPaths(paths)
+      return
+    }
     for (const path of paths) addFileByPath(path)
   }, [addFileByPath])
 
@@ -231,6 +237,18 @@ export default function WorkspacePage() {
           t={t}
         />
       </div>
+
+      {mergeModalPaths && (
+        <MergePsdModal
+          open
+          filePaths={mergeModalPaths}
+          onCancel={() => setMergeModalPaths(null)}
+          onMerged={(result) => {
+            setMergeModalPaths(null)
+            addFileByPath(result.outputPath)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest'
 import {SliceService} from './slice.service'
+import type {DiskRawInput} from './slice.service'
 import sharp from 'sharp'
-import {existsSync, mkdirSync, rmSync} from 'fs'
+import {existsSync, mkdirSync, rmSync, writeFileSync} from 'fs'
 import {join} from 'path'
 import {tmpdir} from 'os'
 
@@ -792,6 +793,221 @@ describe('SliceService', () => {
       })
 
       expect(results).toHaveLength(0)
+    })
+  })
+
+  // ──────────────────────────────────────────
+  // DiskRawInput — disk-backed raw RGBA path
+  //
+  // These tests cover the streaming path used for merged `.rgba` sources that
+  // would OOM Sharp if decoded into a Buffer. The input is a synthetic raw
+  // RGBA file with an 8-byte header; slices should produce identical results
+  // to the in-memory path.
+  // ──────────────────────────────────────────
+  describe('DiskRawInput path', () => {
+    const HEADER_BYTES = 8
+
+    /**
+     * Build a `.rgba` test file with a colored/white banded payload so both
+     * fixedSlice (byte-range reads) and autoSlice (white-row analysis) can be
+     * exercised against the same file.
+     */
+    function writeBandedRgbaFile(
+      filePath: string,
+      width: number,
+      bands: { height: number; white: boolean }[]
+    ): DiskRawInput {
+      const totalHeight = bands.reduce((sum, b) => sum + b.height, 0)
+      const payloadBytes = width * totalHeight * 4
+      const out = Buffer.alloc(HEADER_BYTES + payloadBytes)
+      out.writeUInt32LE(width, 0)
+      out.writeUInt32LE(totalHeight, 4)
+
+      let y = 0
+      for (const band of bands) {
+        const val = band.white ? 255 : 0
+        for (let row = 0; row < band.height; row++) {
+          for (let x = 0; x < width; x++) {
+            const offset = HEADER_BYTES + ((y + row) * width + x) * 4
+            out[offset] = val
+            out[offset + 1] = val
+            out[offset + 2] = val
+            out[offset + 3] = 255
+          }
+        }
+        y += band.height
+      }
+
+      writeFileSync(filePath, out)
+      return {
+        kind: 'disk-raw',
+        filePath,
+        headerOffset: HEADER_BYTES,
+        width,
+        height: totalHeight,
+        channels: 4
+      }
+    }
+
+    it('fixedSlice reads stripes from disk and produces the correct number of slices', async () => {
+      const path = join(testDir, 'fixed_disk.rgba')
+      const input = writeBandedRgbaFile(path, 80, [
+        { height: 300, white: false }
+      ])
+
+      const results = await service.fixedSlice(input, {
+        sliceHeight: 100, startOffset: 0,
+        prefix: 'fdisk', padding: 4, outputDir: testDir, startIndex: 1
+      })
+
+      expect(results).toHaveLength(3)
+      expect(results[0].name).toBe('fdisk_0001.png')
+      expect(results[0].width).toBe(80)
+      expect(results[0].height).toBe(100)
+
+      for (const r of results) {
+        expect(existsSync(r.path)).toBe(true)
+        const meta = await sharp(r.path).metadata()
+        expect(meta.width).toBe(80)
+        expect(meta.height).toBe(r.height)
+      }
+    })
+
+    it('autoSlice streams the raw RGBA off disk and finds white-row cuts', async () => {
+      const path = join(testDir, 'auto_disk.rgba')
+      const input = writeBandedRgbaFile(path, 40, [
+        { height: 80, white: false },
+        { height: 40, white: true },
+        { height: 80, white: false }
+      ])
+
+      const results = await service.autoSlice(input, {
+        whiteThreshold: 245, minWhiteRun: 10, minSliceHeight: 0,
+        cutPosition: 'middle',
+        prefix: 'adisk', padding: 4, outputDir: testDir, startIndex: 1
+      })
+
+      expect(results).toHaveLength(2)
+      // Cut at middle of [80,120) = 100, so first slice should be 100 rows tall.
+      expect(results[0].height).toBe(100)
+      expect(results[1].height).toBe(100)
+
+      for (const r of results) {
+        expect(existsSync(r.path)).toBe(true)
+        const meta = await sharp(r.path).metadata()
+        expect(meta.width).toBe(40)
+        expect(meta.height).toBe(r.height)
+      }
+    })
+
+    it('produces the same ranges as the in-memory path for equivalent input', async () => {
+      // Build the same banded content in both forms and compare slice counts
+      // + per-slice heights. This is the correctness proof for the disk-backed
+      // analyzeWhiteRows implementation.
+      const width = 32
+      const bands = [
+        { height: 50, white: false },
+        { height: 30, white: true },
+        { height: 50, white: false }
+      ]
+
+      // Disk input
+      const diskPath = join(testDir, 'compare_disk.rgba')
+      const diskInput = writeBandedRgbaFile(diskPath, width, bands)
+
+      // In-memory input (matching shape: RGBA, same dimensions and band layout)
+      const totalHeight = bands.reduce((s, b) => s + b.height, 0)
+      const memBuf = Buffer.alloc(width * totalHeight * 4)
+      {
+        let y = 0
+        for (const b of bands) {
+          const val = b.white ? 255 : 0
+          for (let row = 0; row < b.height; row++) {
+            for (let x = 0; x < width; x++) {
+              const off = ((y + row) * width + x) * 4
+              memBuf[off] = val
+              memBuf[off + 1] = val
+              memBuf[off + 2] = val
+              memBuf[off + 3] = 255
+            }
+          }
+          y += b.height
+        }
+      }
+
+      const diskResults = await service.autoSlice(diskInput, {
+        whiteThreshold: 245, minWhiteRun: 10, minSliceHeight: 0,
+        cutPosition: 'middle',
+        prefix: 'cmpd', padding: 4, outputDir: testDir, startIndex: 1
+      })
+
+      const memDir = join(tmpdir(), `slice_cmp_mem_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+      mkdirSync(memDir, { recursive: true })
+      const memResults = await service.autoSlice(
+        { buffer: memBuf, raw: { width, height: totalHeight, channels: 4 } },
+        {
+          whiteThreshold: 245, minWhiteRun: 10, minSliceHeight: 0,
+          cutPosition: 'middle',
+          prefix: 'cmpm', padding: 4, outputDir: memDir, startIndex: 1
+        }
+      )
+
+      expect(diskResults.length).toBe(memResults.length)
+      for (let i = 0; i < diskResults.length; i++) {
+        expect(diskResults[i].height).toBe(memResults[i].height)
+        expect(diskResults[i].width).toBe(memResults[i].width)
+      }
+
+      rmSync(memDir, { recursive: true, force: true })
+    })
+
+    it('analyzeWhiteRowsFromDisk chunks rows correctly across chunk boundaries', async () => {
+      // A canvas wide enough that a ~100 MB chunk covers only a few rows —
+      // ensures the streaming loop crosses a chunk boundary. We cap width at
+      // something test-friendly: 25M pixels/row × 4 ch = 100MB. Instead we
+      // pick a narrow canvas with many rows and verify every row is analyzed
+      // (proxies for boundary correctness since the chunk math is the same).
+      const width = 8
+      const height = 5000
+      const path = join(testDir, 'large_disk.rgba')
+      // Alternate every 200 rows between white and colored to build a
+      // predictable white-row pattern.
+      const out = Buffer.alloc(HEADER_BYTES + width * height * 4)
+      out.writeUInt32LE(width, 0)
+      out.writeUInt32LE(height, 4)
+      for (let y = 0; y < height; y++) {
+        const white = Math.floor(y / 200) % 2 === 0
+        const val = white ? 255 : 0
+        for (let x = 0; x < width; x++) {
+          const off = HEADER_BYTES + (y * width + x) * 4
+          out[off] = val
+          out[off + 1] = val
+          out[off + 2] = val
+          out[off + 3] = 255
+        }
+      }
+      writeFileSync(path, out)
+
+      const input: DiskRawInput = {
+        kind: 'disk-raw',
+        filePath: path,
+        headerOffset: HEADER_BYTES,
+        width,
+        height,
+        channels: 4
+      }
+
+      const results = await service.autoSlice(input, {
+        whiteThreshold: 245, minWhiteRun: 50, minSliceHeight: 0,
+        cutPosition: 'middle',
+        prefix: 'chunk', padding: 4, outputDir: testDir, startIndex: 1
+      })
+
+      // We expect multiple slices — one per colored band.
+      expect(results.length).toBeGreaterThan(1)
+      // Total height must equal source height.
+      const total = results.reduce((s, r) => s + r.height, 0)
+      expect(total).toBe(height)
     })
   })
 })

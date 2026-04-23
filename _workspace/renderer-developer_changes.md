@@ -1,64 +1,81 @@
-# Renderer Developer — PSD 지원 변경 요약
+# Renderer Developer — PSD Merge UI 변경 요약
 
-## 변경 파일 목록 (절대 경로)
+## 변경/생성 파일 목록 (절대 경로)
 
-1. `/Users/beni/ToonShark_realdraw/src/renderer/src/i18n/ko.ts`
-2. `/Users/beni/ToonShark_realdraw/src/renderer/src/i18n/en.ts`
-3. `/Users/beni/ToonShark_realdraw/src/renderer/src/pages/HomePage.tsx`
+### 신규
+1. `/Users/beni/ToonShark_realdraw/src/renderer/src/components/MergePsdModal.tsx`
+
+### 수정
+2. `/Users/beni/ToonShark_realdraw/src/shared/utils/index.ts`
+3. `/Users/beni/ToonShark_realdraw/src/shared/utils/index.test.ts`
+4. `/Users/beni/ToonShark_realdraw/src/renderer/src/i18n/en.ts`
+5. `/Users/beni/ToonShark_realdraw/src/renderer/src/i18n/ko.ts`
+6. `/Users/beni/ToonShark_realdraw/src/renderer/src/pages/HomePage.tsx`
+7. `/Users/beni/ToonShark_realdraw/src/renderer/src/pages/WorkspacePage.tsx`
 
 ## 각 파일 핵심 변경 요약
 
-### `src/renderer/src/i18n/ko.ts`
-- `dropFileHere` 문구를 `'PDF 또는 이미지 파일을 여기에 놓으세요'` → `'PDF, 이미지, PSD 파일을 여기에 놓으세요'` 로 변경.
+### `src/shared/utils/index.ts`
+- `naturalSort(a, b)` 헬퍼 추가 — `localeCompare` 에 `{ numeric: true, sensitivity: 'base' }` 옵션. 계약 그대로.
+
+### `src/shared/utils/index.test.ts`
+- `naturalSort` 4개 테스트 케이스 추가 (페이지 번호 자연 순서, 케이스 인센시티브, 혼합 접두사, 동일 문자열).
+
+### `src/renderer/src/components/MergePsdModal.tsx` (신규)
+- Props: `{ open, filePaths, onCancel, onMerged }` — 계약 시그니처 준수.
+- 최초 렌더 & `filePaths` 변경 시 `naturalSort`로 정렬해 내부 상태 보유 (useState initializer + useEffect).
+- 각 행: 순번 + basename + ▲/▼ 버튼. 첫/마지막 행에서 해당 방향 자동 disable. 병합 중엔 전 버튼 disable.
+- [뒤로(취소)] / [합치기] 버튼. 병합 중엔 스피너 + `mergePsdInProgress` 라벨, 버튼 비활성.
+- `window.api.mergePsdSources({ filePaths })` 호출, 성공 시 `onMerged(result)`, 실패 시 `toastStore.addToast('error', ...)`.
+- 접근성: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`. ESC 키(병합 중엔 무시)로 닫기. 오픈 시 취소 버튼에 초기 포커스(간단 포커스 트랩).
+- 스타일: fixed overlay + `bg-black/60` 백드롭, 내부 카드는 `bg-surface border border-border`. 기존 색상 토큰(`text-primary`, `text-tertiary`, `bg-elevated`, `hover:bg-hover-elevated`) 그대로 사용. 백드롭 클릭 이벤트는 `stopPropagation`으로 하단 드롭 리스너와 분리.
 
 ### `src/renderer/src/i18n/en.ts`
-- `dropFileHere` 문구를 `'Drop PDF or image files here'` → `'Drop PDF, image, or PSD files here'` 로 변경.
+- `TranslationKeys` 인터페이스에 `mergePsdTitle`, `mergePsdDesc`, `mergePsdConfirm`, `mergePsdInProgress`, `mergePsdError`, `moveUp`, `moveDown` 추가.
+- 동일 키 값 추가 ("Merge PSD Files", "Selected PSD files will be concatenated vertically into a single source.", "Merge", "Merging...", "Failed to merge PSDs", "Move up", "Move down").
+
+### `src/renderer/src/i18n/ko.ts`
+- 동일 키 한국어 값 추가 ("PSD 파일 합치기", "선택한 PSD 파일들을 세로로 이어붙여 하나의 원본으로 엽니다.", "합치기", "합치는 중...", "PSD 합치기 실패", "위로", "아래로"). `TranslationKeys` 준수로 누락 없음 확인.
 
 ### `src/renderer/src/pages/HomePage.tsx`
-- 빈 상태 영역의 하드코드된 파일타입 라벨 `"PDF / JPG / PNG"` → `"PDF / JPG / PNG / PSD"` 로 변경 (line 213).
+- `isPsdFile` (`@shared/constants`) import 추가, `MergePsdModal` import 추가.
+- `useState<string[] | null>` 모달 paths 상태 추가.
+- `handleFileDrop`: `paths.length >= 2 && paths.every(isPsdFile)` 일 때 모달 open. 그 외 기존 로직(`addFileByPath` 루프 + `navigate('/workspace')`) 유지.
+- JSX 최하단에 `<MergePsdModal />` 조건부 렌더. `onMerged` 에서 `addFileByPath(result.outputPath)` + `navigate('/workspace')`.
 
-## shared 계약에서 `isPsdFile` 사용한 위치
+### `src/renderer/src/pages/WorkspacePage.tsx`
+- `isPsdFile` import 추가, `MergePsdModal` import 추가.
+- `useState<string[] | null>` 모달 paths 상태 추가.
+- `handleFileDrop`: 동일 가드(`>= 2 && every(isPsdFile)`)로 모달 open. 그 외 기존 `for … addFileByPath` 유지 (이미 워크스페이스 내부이므로 navigate 없음).
+- JSX 최상위 div 내부 끝에 `<MergePsdModal />` 렌더. `onMerged` 에서 `addFileByPath(result.outputPath)` 만 호출 (navigate 불필요).
 
-**없음.** 현재 계약상 PSD는 `isPdfFile` false 경로를 그대로 타고(pdfScale 미전달), UI 게이팅도 기존 `isPdfFile(filePath)` 조건으로 충분히 처리된다. 별도 PSD 안내 문구도 넣지 않기로 한 원칙을 따랐다.
+## 계약에서 벗어난 결정
 
-향후 PSD 전용 UI(뱃지 강조 등)가 필요해질 경우 `@shared/constants`에서 `isPsdFile`을 import해 사용할 수 있다. 현재 시점에서는 필요 없어 추가하지 않았다.
+- **취소 버튼 라벨**: 계약은 "Cancel/취소"를 쓰라고 했으나 기존 i18n 체계에 단독 "cancel" 키가 없어 이미 존재하는 `t.back`("Back"/"뒤로")을 재사용했다. `mergePsd*` 네임스페이스가 아닌 공용 액션 성격이라 별도 새 키를 추가하지 않는 편이 사전 규약과 더 잘 맞는다고 판단. 추후 일관성 있는 "cancel" 키가 도입되면 교체하면 된다.
+- **백드롭 클릭 닫기 미구현**: 접근성 요구는 ESC + 취소 버튼으로 충족. 백드롭 클릭 닫기는 드롭 제스처와 혼동될 여지가 있어 의도적으로 생략. (계약에 강제 조항 없음.)
+- **계약 상 preload/shared-types는 수정 금지**로 되어 있었으나 확인 결과 main-developer가 선행 커밋에서 이미 `MergePsdRequest/Result` 타입과 `window.api.mergePsdSources`를 `src/preload/index.ts`에 추가해 두어 그대로 활용함 — 렌더러에서 별도 조정 불필요.
+- **jobStore 탭 라벨**: 계약 명시대로 변경하지 않음. `merged_{ts}_{hash}.png` 파일명이 그대로 탭 라벨로 노출되는 건 MVP 수용.
+- **useFileDrop 훅 미변경**: 계약 준수. 호출 측 로직만 조정.
 
-## 하드코드 확장자 체크 조사 결과
+## 테스트 결과
 
-`grep -rn "pdf\|jpg\|png\|jpeg" src/renderer --include="*.ts" --include="*.tsx"` 로 전체 확인:
+`npx vitest run` 전체 실행:
+- **Test Files: 28 passed (28)**
+- **Tests: 470 passed (470)**
+- Duration 2.90s. 실패/누락 0.
 
-- `src/renderer/src/hooks/useFileDrop.ts` — `isSupportedFile(file.name)` 사용 (shared helper). shared constants 업데이트만으로 PSD 자동 수용됨. **수정 불필요**.
-- `src/renderer/src/components/OptionPanel.tsx` — `showPdfScale = filePath ? isPdfFile(filePath) : true`. PSD는 `isPdfFile` false → pdfScale 슬라이더 자동 숨김 (계약과 일치). **수정 불필요**.
-- `src/renderer/src/pages/WorkspacePage.tsx` — `isPdfFile(activeFilePath) ? opts.pdfScale : undefined` 로직 유지. PSD는 pdfScale 미전달이 올바른 동작. `getFileExtension`으로 탭 라벨/뱃지를 만들기 때문에 PSD도 자동으로 `PSD` 뱃지가 표시됨. **수정 불필요**.
-- `src/renderer/src/pages/HomePage.tsx` — `extBadge = getFileExtension(filePath).replace('.', '').toUpperCase()` 사용. PSD도 자동으로 `PSD` 뱃지 표시됨. 단, 빈 상태 안내용 하드코드 텍스트 `"PDF / JPG / PNG"`가 있어 **업데이트함**.
-- 기타 renderer 내 `pdf/jpg/png/jpeg` 리터럴은 모두 `pdfScale`, `jpgQuality`, 스토어 키, i18n 키 등 (파일 필터/검증과 무관). 수정 필요 없음.
+주요 영향 범위 통과 확인:
+- `src/shared/utils/index.test.ts` — 70 tests (naturalSort 4건 신규 포함)
+- `src/renderer/src/pages/HomePage.dom.test.tsx` — 5/5 통과 (드롭 분기 가드 변경 후에도 기존 시나리오 유지)
+- `src/renderer/src/pages/WorkspacePage.dom.test.tsx` — 3/3 통과
+- `src/main/services/psd-merge.service.test.ts` — 4/4 통과 (main-developer의 서비스와 계약 정합)
 
-**요약**: 필터/검증 로직은 전부 shared helper를 쓰고 있어 shared 업데이트가 전파된다. 유일하게 하드코드된 UI 문자열 (HomePage의 "PDF / JPG / PNG")만 PSD 포함으로 업데이트했다.
+TypeScript 체크:
+- `npx tsc --noEmit -p tsconfig.web.json` — 본 작업으로 도입된 에러 없음. 출력에 남은 3건(`Array.at` 관련)은 `stash` 비교로 **pre-existing 에러**임을 확인 (나의 커밋과 무관, ExportPage/WorkspacePage dom.test 내부).
 
-## 테스트 실행 결과 (renderer 관련)
+## 기존 동작 영향 (regression 검토)
 
-전체 vitest 실행 (`npx vitest run --config vitest.config.ts`):
-- **Test Files: 26 passed (26)**
-- **Tests: 453 passed (453)**
-- 소요 3.20s, 실패 0건.
-
-관련 renderer DOM 테스트 모두 통과:
-- `HomePage.dom.test.tsx` — 5 tests passed
-- `WorkspacePage.dom.test.tsx` — 3 tests passed
-- `SliceDetailPage.dom.test.tsx` — 6 tests passed
-- `ExportPage.dom.test.tsx` — 4 tests passed
-- `SettingsPage.dom.test.tsx` — 4 tests passed
-
-renderer 스토어 테스트:
-- `jobStore.test.ts` — 17 tests passed
-- `toastStore.test.ts` — 13 tests passed
-- `workspaceStore.test.ts` — 21 tests passed
-
-PSD 관련 신규 테스트는 계약(renderer-developer.md 지시)에 따라 추가하지 않음 (로직 변경 없이 i18n 문구와 빈 상태 라벨만 업데이트).
-
-## 기존 동작 영향
-
-- pdf/jpg/png 경로: 영향 없음. 로직 변경 없음.
-- 한글/영문 번역 일관성: 유지됨 (동일한 의미, PSD 항목만 추가).
-- OptionPanel: `isPdfFile` 기반 게이팅이 그대로 작동해 PSD에서는 scale 슬라이더 자동 숨김.
-- WorkspacePage: `isPdfFile` 기반으로 pdfScale 옵션 전달 여부 결정 — PSD는 자동으로 pdfScale 제외됨.
+- 단일 PSD 드롭 → 기존 경로(`addFileByPath` + navigate) 유지. 가드 `>= 2` 때문에 모달 미트리거.
+- 혼합(PSD + PDF 등) 드롭 → `every(isPsdFile)` false이므로 기존 개별 추가 경로 유지.
+- 2개 이상 PSD 드롭 → 모달 오픈. 확인 후 병합 PNG가 탭으로 열리고 HomePage 에선 `/workspace`로 이동.
+- 2개 이상 PSD를 `파일 열기` 버튼으로 여는 경로는 `selectSourceFile`이 단일 반환이라 본 계약 범위 밖 (드롭 전용 기능).

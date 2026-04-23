@@ -198,6 +198,20 @@ export type CaptureThumbnailResult = {
   oversizedWarning?: string
 }
 
+export type MergePsdRequest = {
+  /** Absolute paths, user-provided order */
+  filePaths: string[]
+}
+
+export type MergePsdResult = {
+  /** Absolute path to merged PNG (OS temp dir) */
+  outputPath: string
+  width: number
+  height: number
+  /** Convenience: filePaths.length */
+  sourceCount: number
+}
+
 export type RunSliceJobPayload = {
   sourceFilePath: string
   title: string

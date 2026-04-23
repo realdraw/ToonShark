@@ -194,6 +194,15 @@ export interface TranslationKeys {
   // Duplicate detection
   toastDuplicateJob: string
 
+  // PSD Merge
+  mergePsdTitle: string
+  mergePsdDesc: string
+  mergePsdConfirm: string
+  mergePsdInProgress: string
+  mergePsdError: string
+  moveUp: string
+  moveDown: string
+
   // Toast
   toastJobSuccess: (sliceCount: number) => string
   toastJobFailed: string
@@ -412,6 +421,15 @@ const en: TranslationKeys = {
 
   // Duplicate detection
   toastDuplicateJob: 'A job with the same settings already exists',
+
+  // PSD Merge
+  mergePsdTitle: 'Merge PSD Files',
+  mergePsdDesc: 'Selected PSD files will be concatenated vertically into a single source.',
+  mergePsdConfirm: 'Merge',
+  mergePsdInProgress: 'Merging...',
+  mergePsdError: 'Failed to merge PSDs',
+  moveUp: 'Move up',
+  moveDown: 'Move down',
 
   // Toast
   toastJobSuccess: (sliceCount: number) => `Slicing complete! ${sliceCount} slice${sliceCount !== 1 ? 's' : ''} created`,

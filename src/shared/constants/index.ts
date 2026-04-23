@@ -10,6 +10,8 @@ export {
   isPdfFile,
   isPsdFile,
   isImageFile,
+  isRawRgbaFile,
+  isInternalPipelineFile,
   getFileExtension,
   stripExtension,
   getDialogFilters

@@ -87,6 +87,14 @@ function createServices(): MockedServices {
     sourceService: {
       getPageDimensions: vi.fn(async () => ({ width: 100, height: 200 }))
     } as any,
+    psdMergeService: {
+      merge: vi.fn(async () => ({
+        outputPath: '/tmp/toonshark-merged/merged_0_abcdef01.png',
+        width: 100,
+        height: 200,
+        sourceCount: 2
+      }))
+    } as any,
     logger: {
       info: vi.fn(),
       warn: vi.fn(),

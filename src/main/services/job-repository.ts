@@ -2,7 +2,7 @@ import {existsSync} from 'fs'
 import {readdir, readFile, rm, stat, writeFile} from 'fs/promises'
 import {basename, dirname, join} from 'path'
 import type {JobMeta, StorageInfo, StorageJobInfo, StorageSourceInfo} from '@shared/types'
-import {isSupportedFile, stripExtension} from '@shared/constants/supported-formats'
+import {isInternalPipelineFile, isSupportedFile, stripExtension} from '@shared/constants/supported-formats'
 import {toErrorMessage} from '@shared/utils'
 import type {FileService} from './file.service'
 import type {Logger} from './logger.service'
@@ -168,7 +168,11 @@ export class JobRepository {
 
     try {
       const entries = await readdir(sourceDir)
-      const sourceFileName = entries.find((entry) => isSupportedFile(entry))
+      // Match user-facing formats plus internal merge outputs (`.rgba`) so
+      // jobs sliced from a merged source remain discoverable after restart.
+      const sourceFileName = entries.find(
+        (entry) => isSupportedFile(entry) || isInternalPipelineFile(entry)
+      )
       if (!sourceFileName) return null
 
       const sourceFilePath = join(sourceDir, sourceFileName)
@@ -250,7 +254,7 @@ export class JobRepository {
       let existingPath: string | null = null
       try {
         const sourceFiles = await readdir(sourceDir)
-        const found = sourceFiles.find((f) => isSupportedFile(f))
+        const found = sourceFiles.find((f) => isSupportedFile(f) || isInternalPipelineFile(f))
         if (found) {
           existingPath = join(sourceDir, found)
         }

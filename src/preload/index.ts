@@ -10,6 +10,8 @@ import type {
   ExportResult,
   JobMeta,
   JobProgress,
+  MergePsdRequest,
+  MergePsdResult,
   RunSliceJobPayload,
   StorageInfo
 } from '@shared/types'
@@ -75,6 +77,9 @@ const api = {
 
   getSourceDimensions: (filePath: string): Promise<{ width: number; height: number }> =>
     ipcRenderer.invoke('get-source-dimensions', filePath),
+
+  mergePsdSources: (payload: MergePsdRequest): Promise<MergePsdResult> =>
+    ipcRenderer.invoke('merge-psd-sources', payload),
 
   runSliceJob: (payload: RunSliceJobPayload): Promise<JobMeta> =>
     ipcRenderer.invoke('run-slice-job', payload),

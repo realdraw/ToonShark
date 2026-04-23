@@ -4,12 +4,13 @@ import sharp from 'sharp'
 import {PdfService} from '../services/pdf.service'
 import {ImageService} from '../services/image.service'
 import {PsdService} from '../services/psd.service'
+import {RawRgbaSourceService} from '../services/raw-rgba-source.service'
 import {SourceService} from '../services/source.service'
 import {SliceService} from '../services/slice.service'
 import type {PipelineResult} from '../services/slice-pipeline'
 import {runSlicePipeline} from '../services/slice-pipeline'
 import type {AppSettings, JobProgress, RunSliceJobPayload} from '@shared/types'
-import {isPsdFile} from '@shared/constants/supported-formats'
+import {isPsdFile, isRawRgbaFile} from '@shared/constants/supported-formats'
 import {toErrorMessage} from '@shared/utils'
 
 // Limit sharp thread pool to avoid CPU thrashing
@@ -39,6 +40,10 @@ async function execute(input: WorkerInput) {
   // model is intentional: it keeps CPU-heavy PSD parsing off job.worker's
   // event loop so progress messages keep flowing even on very large files.
   sourceService.addRenderer(isPsdFile, new PsdService())
+  // Route merged `.rgba` sources to the disk-backed renderer — see note in
+  // src/main/index.ts. Must be registered in both wiring sites so direct
+  // (main-thread) execution and worker execution behave identically.
+  sourceService.addRenderer(isRawRgbaFile, new RawRgbaSourceService())
   const sliceService = new SliceService()
 
   try {

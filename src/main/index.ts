@@ -7,8 +7,10 @@ import {SliceService} from './services/slice.service'
 import {PdfService} from './services/pdf.service'
 import {ImageService} from './services/image.service'
 import {PsdService} from './services/psd.service'
+import {PsdMergeService} from './services/psd-merge.service'
+import {RawRgbaSourceService} from './services/raw-rgba-source.service'
 import {SourceService} from './services/source.service'
-import {isPsdFile} from '@shared/constants/supported-formats'
+import {isPsdFile, isRawRgbaFile} from '@shared/constants/supported-formats'
 import {PreviewService} from './services/preview.service'
 import {JobRepository} from './services/job-repository'
 import {JobExecutionService} from './services/job-execution.service'
@@ -113,8 +115,14 @@ app.whenReady().then(() => {
 
   const fileService = new FileService()
   const sliceService = new SliceService()
+  const psdService = new PsdService()
   const sourceService = new SourceService(new PdfService(), new ImageService())
-  sourceService.addRenderer(isPsdFile, new PsdService())
+  sourceService.addRenderer(isPsdFile, psdService)
+  // Route merged `.rgba` sources to the disk-backed renderer so slicing
+  // never asks Sharp to decode the multi-GB raw canvas (which would segfault
+  // libvips and crash the whole Electron process).
+  sourceService.addRenderer(isRawRgbaFile, new RawRgbaSourceService())
+  const psdMergeService = new PsdMergeService()
   const previewService = new PreviewService()
   const jobRepository = new JobRepository(settings.baseDir, fileService, logger)
   const jobExecutionService = new JobExecutionService(
@@ -129,6 +137,7 @@ app.whenReady().then(() => {
     jobExecutionService,
     exportService,
     sourceService,
+    psdMergeService,
     logger,
     getMainWindow: () => mainWindow
   })

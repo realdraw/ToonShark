@@ -46,6 +46,14 @@ export function extractDir(filePath: string): string {
   return lastSep > 0 ? filePath.substring(0, lastSep) : filePath
 }
 
+/**
+ * Natural-order string comparator (e.g. "page2" < "page10").
+ * Use as a `.sort()` callback.
+ */
+export function naturalSort(a: string, b: string): number {
+  return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+}
+
 export function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes < 1) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB']

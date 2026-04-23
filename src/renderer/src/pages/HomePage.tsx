@@ -1,16 +1,17 @@
-import {useCallback, useEffect, useMemo} from 'react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useJobStore} from '../stores/jobStore'
 import {useTranslation} from '../i18n'
 import type {JobMeta} from '@shared/types'
 import {extractSourceName, formatBytes} from '@shared/utils'
-import {getFileExtension} from '@shared/constants'
+import {getFileExtension, isPsdFile} from '@shared/constants'
 import {useFileDrop} from '../hooks/useFileDrop'
 import logo from '../assets/logo.svg'
 import {useMergedJobs} from '../hooks/useMergedJobs'
 import {useStorageInfo} from '../hooks/useStorageInfo'
 import {useDeleteActions} from '../hooks/useDeleteActions'
 import {DropOverlay} from '../components/DropOverlay'
+import {MergePsdModal} from '../components/MergePsdModal'
 
 const STORAGE_WARNING_THRESHOLD = 10 * 1024 * 1024 * 1024 // 10GB
 
@@ -20,6 +21,7 @@ export default function HomePage() {
   const { fileList, sessionResults, recentJobs, isLoading, isRunning, runningFilePath, fetchRecentJobs, addFile, addFileByPath, setActiveFile, removeFile } = useJobStore()
   const { storageInfo, refreshStorage } = useStorageInfo()
   const { confirmDeleteJobsBySource, confirmDeleteAll } = useDeleteActions(t, refreshStorage)
+  const [mergeModalPaths, setMergeModalPaths] = useState<string[] | null>(null)
 
   useEffect(() => {
     fetchRecentJobs()
@@ -88,6 +90,10 @@ export default function HomePage() {
   }
 
   const handleFileDrop = useCallback((paths: string[]) => {
+    if (paths.length >= 2 && paths.every(isPsdFile)) {
+      setMergeModalPaths(paths)
+      return
+    }
     for (const path of paths) addFileByPath(path)
     navigate('/workspace')
   }, [addFileByPath, navigate])
@@ -282,6 +288,19 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {mergeModalPaths && (
+        <MergePsdModal
+          open
+          filePaths={mergeModalPaths}
+          onCancel={() => setMergeModalPaths(null)}
+          onMerged={(result) => {
+            setMergeModalPaths(null)
+            addFileByPath(result.outputPath)
+            navigate('/workspace')
+          }}
+        />
+      )}
     </div>
   )
 }

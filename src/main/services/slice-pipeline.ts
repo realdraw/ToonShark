@@ -2,8 +2,9 @@ import {copyFileSync, existsSync, mkdirSync} from 'fs'
 import {basename, dirname, join} from 'path'
 import sharp from 'sharp'
 import type {AppSettings, JobProgress, RunSliceJobPayload, SliceFileInfo} from '@shared/types'
-import type {RawPageResult, SourceRenderer} from './source-renderer'
-import type {SliceService} from './slice.service'
+import type {SourcePage, SourceRenderer} from './source-renderer'
+import {isDiskBackedPage} from './source-renderer'
+import type {DiskRawInput, RawImageInput, SliceService} from './slice.service'
 
 type ProgressCallback = (progress: JobProgress) => void
 
@@ -11,16 +12,39 @@ type ProgressCallback = (progress: JobProgress) => void
 // 고해상도(pdfScale 10x) + 대형 PDF에서 메모리 부담이 될 수 있으므로, 필요 시 동적 조정 검토.
 const RENDERED_WRITE_BATCH_SIZE = 5
 
+// rendered/ PNG는 아무도 읽지 않는 아카이브 산출물이다. 병합된 PSD처럼 거대한
+// 단일 페이지(수백 M 픽셀)는 PNG 인코딩만으로 워커 힙을 소진시키므로 임계
+// 이상이면 건너뛴다. 작은 PDF 페이지는 기존대로 저장.
+const RENDERED_PNG_MAX_PIXELS = 50_000_000
+
 export type PipelineResult = {
   files: (SliceFileInfo & { pageNumber: number })[]
   pageCount: number
   copiedSourcePath: string
 }
 
-function rawToSharpInput(raw: RawPageResult) {
+type SliceInput = RawImageInput | DiskRawInput
+
+/**
+ * Convert a SourcePage (either in-memory or disk-backed) into the shape
+ * SliceService accepts. For in-memory pages we keep the existing raw RGBA
+ * buffer path; for disk-backed pages we pass a DiskRawInput so slicing reads
+ * straight from disk instead of holding the whole canvas in one Buffer.
+ */
+function pageToSliceInput(page: SourcePage): SliceInput {
+  if (isDiskBackedPage(page)) {
+    return {
+      kind: 'disk-raw',
+      filePath: page.filePath,
+      headerOffset: page.headerOffset,
+      width: page.width,
+      height: page.height,
+      channels: page.channels
+    }
+  }
   return {
-    buffer: raw.buffer,
-    rawOptions: { width: raw.width, height: raw.height, channels: 4 as const }
+    buffer: page.buffer,
+    raw: { width: page.width, height: page.height, channels: 4 as const }
   }
 }
 
@@ -63,9 +87,8 @@ export async function runSlicePipeline(
   const pageCount = await sourceRenderer.renderAllPagesRaw(
     payload.sourceFilePath,
     pdfScale,
-    async (page, raw, totalPages) => {
+    async (page, pageResult, totalPages) => {
       const totalSteps = totalPages * 2
-      const { buffer: rawBuf, rawOptions } = rawToSharpInput(raw)
 
       // Render progress
       const renderStep = (page - 1) * 2 + 1
@@ -76,16 +99,25 @@ export async function runSlicePipeline(
         percent: Math.round(10 + (renderStep / totalSteps) * 80)
       })
 
-      // Save rendered PNG in background (don't await individually)
-      const renderedName = `page_${String(page).padStart(4, '0')}.png`
-      pendingRenderedWrites.push(
-        sharp(rawBuf, { raw: rawOptions }).png().toFile(join(renderedDir, renderedName)).then(() => {})
-      )
+      // Save rendered PNG in background (don't await individually) — but skip
+      // for huge single-page sources (merged PSD, long webtoon strips) where
+      // the PNG encode would OOM the worker and nothing reads the output.
+      //
+      // Disk-backed pages are always huge merged sources by construction, so
+      // we never try to encode them as archival PNG.
+      const pagePixels = pageResult.width * pageResult.height
+      if (!isDiskBackedPage(pageResult) && pagePixels <= RENDERED_PNG_MAX_PIXELS) {
+        const renderedName = `page_${String(page).padStart(4, '0')}.png`
+        const rawOptions = { width: pageResult.width, height: pageResult.height, channels: 4 as const }
+        pendingRenderedWrites.push(
+          sharp(pageResult.buffer, { raw: rawOptions, limitInputPixels: false }).png().toFile(join(renderedDir, renderedName)).then(() => {})
+        )
 
-      // Flush completed writes periodically to avoid memory accumulation
-      if (pendingRenderedWrites.length >= RENDERED_WRITE_BATCH_SIZE) {
-        await Promise.all(pendingRenderedWrites)
-        pendingRenderedWrites.length = 0
+        // Flush completed writes periodically to avoid memory accumulation
+        if (pendingRenderedWrites.length >= RENDERED_WRITE_BATCH_SIZE) {
+          await Promise.all(pendingRenderedWrites)
+          pendingRenderedWrites.length = 0
+        }
       }
 
       // Slice progress
@@ -97,11 +129,13 @@ export async function runSlicePipeline(
         percent: Math.round(10 + (sliceStep / totalSteps) * 80)
       })
 
-      // #1+#2: Pass raw RGBA buffer directly to slice service — no PNG decode
+      // Pass raw RGBA (buffer or disk-backed) directly to slice service — no
+      // PNG decode. Disk-backed sources stream chunks from the file instead
+      // of decoding into a single Buffer.
+      const sliceInput = pageToSliceInput(pageResult)
       const thumbOpts = { thumbsDir, thumbWidth: THUMB_WIDTH }
-      const rawInput = { buffer: rawBuf, raw: rawOptions }
       const sliceResults = payload.mode === 'fixed'
-        ? await sliceService.fixedSlice(rawInput, {
+        ? await sliceService.fixedSlice(sliceInput, {
             sliceHeight: payload.options.sliceHeight ?? settings.defaultSliceHeight,
             startOffset: payload.options.startOffset ?? 0,
             minSliceHeight:
@@ -112,7 +146,7 @@ export async function runSlicePipeline(
             startIndex: globalIndex,
             ...thumbOpts
           })
-        : await sliceService.autoSlice(rawInput, {
+        : await sliceService.autoSlice(sliceInput, {
             whiteThreshold:
               payload.options.whiteThreshold ?? settings.autoSlice.whiteThreshold,
             minWhiteRun:

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest'
-import {extractDir, extractSourceName, formatBytes, sanitizeFolderId, toErrorMessage, toLocalFileUrl} from './index'
+import {extractDir, extractSourceName, formatBytes, naturalSort, sanitizeFolderId, toErrorMessage, toLocalFileUrl} from './index'
 
 describe('extractSourceName', () => {
   it('should extract name from unix path', () => {
@@ -267,6 +267,27 @@ describe('toErrorMessage', () => {
 
   it('should handle Error subclass', () => {
     expect(toErrorMessage(new TypeError('type err'))).toBe('type err')
+  })
+})
+
+describe('naturalSort', () => {
+  it('should sort numbers in natural order (page2 before page10)', () => {
+    const input = ['page10.psd', 'page2.psd', 'page1.psd']
+    expect(input.slice().sort(naturalSort)).toEqual(['page1.psd', 'page2.psd', 'page10.psd'])
+  })
+
+  it('should be case-insensitive (base sensitivity)', () => {
+    expect(naturalSort('apple', 'Banana')).toBeLessThan(0)
+    expect(naturalSort('Banana', 'apple')).toBeGreaterThan(0)
+  })
+
+  it('should sort mixed prefixes correctly', () => {
+    const input = ['b_2.psd', 'a_10.psd', 'a_2.psd']
+    expect(input.slice().sort(naturalSort)).toEqual(['a_2.psd', 'a_10.psd', 'b_2.psd'])
+  })
+
+  it('should return 0 for identical strings', () => {
+    expect(naturalSort('same', 'same')).toBe(0)
   })
 })
 

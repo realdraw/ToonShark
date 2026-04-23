@@ -1,121 +1,121 @@
-# QA Report — PSD Support (2026-04-22)
+# QA Report — PSD Merge OOM Fix (worker + streaming rewrite)
 
-Verifier: qa-inspector
-Scope: Cross-boundary integrity between main, preload, renderer, and shared contracts for PSD input support. Build + full vitest re-run.
+**Date:** 2026-04-22
+**Scope:** Main → worker relocation of 30× 200MB PSD merge pipeline
+**Verdict:** **READY TO SHIP**
 
-## 1. 공유 계약 (shared/constants)
+---
 
-- [PASS] `.psd` in `SUPPORTED_DOCUMENT_EXTENSIONS` — `src/shared/constants/supported-formats.ts:2` contains `['.pdf', '.psd']`.
-- [PASS] `isPsdFile` implemented — `supported-formats.ts:22-24`, returns true for `.psd` only, case-insensitive via `getFileExtension`.
-- [PASS] `.psd` NOT in `SUPPORTED_IMAGE_EXTENSIONS` — matches contract (PSD is document, not plain image).
-- [PASS] `stripExtension` handles `.psd` — regex `/\.(pdf|psd|jpe?g|png)$/i` at `supported-formats.ts:33`. `"foo.psd"` → `"foo"`, `"foo.PSD"` → `"foo"`.
-- [PASS] `getDialogFilters()` — `supported-formats.ts:37-44`:
-  - "Supported Files" includes `psd` ✓
-  - "PSD Files" entry exists with `['psd']` ✓
-  - "Image Files" does NOT include `psd` ✓ (contract-compliant)
-- [PASS] `isPsdFile` re-exported from `src/shared/constants/index.ts:11`.
-- [PASS] Shared constants test suite — `src/shared/constants/index.test.ts` 45 tests passing (covers new PSD cases via existing generic patterns).
+## 10-Item Verification
 
-## 2. IPC / Type 경계면 정합성
+### 1. Main-thread non-blocking — PASS
+- `src/main/services/psd-merge.service.ts`: **zero** `sharp` import (verified via `grep -n "sharp" …` returning no matches).
+- All CPU-bound work (PSD parse, RGBA assembly, PNG encode) now lives in `src/main/workers/psd-merge.worker.ts`.
+- Service is a pure orchestrator: path validation → deterministic temp filename → `runWorker()` promise. No buffer allocations beyond the ~80-byte IPC envelope.
 
-- [PASS] No new IPC channels introduced. Preload (`src/preload/index.ts`) untouched — verified visually (no PSD-related methods needed). Renderer store / hook interfaces unchanged. Contract says "No new IPC channels" — upheld.
-- [PASS] `isPsdFile` import path is identical in main and (potentially) renderer: both would resolve through `@shared/constants/supported-formats`.
-  - `src/main/index.ts:11` → `import {isPsdFile} from '@shared/constants/supported-formats'`
-  - `src/main/workers/job.worker.ts:12` → same import
-  - Renderer did not need to import `isPsdFile` (design choice documented in renderer-developer_changes.md); any future use goes through the same shared barrel.
-- [PASS] `SourceRenderer` interface fully satisfied by `PsdService`:
-  - `getPageDimensions(filePath): Promise<{width, height}>` — `psd.service.ts:68-74` ✓
-  - `renderAllPagesRaw(filePath, scale, onPage): Promise<number>` — `psd.service.ts:76-94` ✓
-  - Signatures exactly match `src/main/services/source-renderer.ts:11-19`.
-- [PASS] `PsdService.renderAllPagesRaw` accepts and ignores `scale` (renamed `_scale`) — correct; PSD composite is at native resolution, scale is a no-op per contract.
-- [PASS] Main index and job.worker register the renderer identically:
-  - `src/main/index.ts:116-117`: `new SourceService(pdf, image)` + `sourceService.addRenderer(isPsdFile, new PsdService())`
-  - `src/main/workers/job.worker.ts:36-41`: same wiring
-  - Order: image is the fallback (`SourceService` constructor sets `fallback = imageRenderer`). PSD + PDF are explicit testers. `.psd` matches `isPsdFile` before falling through to image — routing is correct.
+### 2. Worker path resolution — PASS
+- `PsdMergeService.getWorkerPath()` (service.ts:35–44) probes `__dirname/workers/psd-merge.worker.js` then `__dirname/../workers/psd-merge.worker.js` — **byte-for-byte equivalent** to `PsdService.getWorkerPath()` (psd.service.ts:29–38).
+- Build output confirmed: `dist-electron/main/workers/psd-merge.worker.js` (4.37 kB) alongside `job.worker.js` and `psd.worker.js`.
+- `electron.vite.config.ts:15` registers the entry in the main rollup input map.
 
-## 3. Worker path 해결
+### 3. Streaming correctness (code read) — PASS
+- **Pass 1** (`collectDimensions`, worker.ts:76–98): `readPsd(buf, { skipLayerImageData: true, skipCompositeImageData: true, skipThumbnail: true })`. `buf` + `psd` are enclosed in a `{ … }` block inside the `for` loop, so both are GC-eligible at the end of each iteration. One file's bytes in flight at any time.
+- **Pass 2** (`writeStagingRgba`, worker.ts:113–158): same block-scope discipline. Each iteration allocates exactly one `Buffer.alloc(maxWidth * height * 4, 0xff)` stripe (pre-filled white → no second pass for right-edge padding), `fh.write(stripe, 0, stripe.length, offset)`, then releases. `fs.promises.open('w')` + positional writes = the `.rgba.staging` file accumulates without a full-canvas buffer ever existing.
+- **Staging filename** (worker.ts:166): `${input.outputPath}.rgba.staging` — matches spec exactly. Deleted in `finally` block (worker.ts:192–200) on both success and failure paths; `rm(..., { force: true })` swallows ENOENT so a missing file never masks the real error.
+- **Pass 3** (worker.ts:182–189): `sharp(stagingPath, { raw, limitInputPixels: false, sequentialRead: true }).png({ compressionLevel: 3 }).toFile(outputPath)`. All three required flags present. Sharp streams the raw file from disk — no full-canvas RGBA buffer at encode time.
 
-- [PASS] `PsdService.getWorkerPath()` — `psd.service.ts:27-29` uses `join(__dirname, 'workers', 'psd.worker.js')`, identical pattern to `JobExecutionService.getWorkerPath()` at `job-execution.service.ts:59-61`. Works in both dev (electron-vite outputs `dist-electron/main/workers/psd.worker.js` from dev server) and packaged (ASAR resolves `__dirname` to `dist-electron/main` inside app.asar).
-- [PASS] `electron.vite.config.ts:14` — rollup input `'workers/psd.worker'` added alongside the job worker.
-- [PASS] Build emits `dist-electron/main/workers/psd.worker.js` (2.33 kB) — verified in `npx electron-vite build` output and on disk at `/Users/beni/ToonShark_realdraw/dist-electron/main/workers/psd.worker.js`.
+### 4. IPC / type / service contract unchanged — PASS
+- `MergePsdRequest` / `MergePsdResult` shapes (`src/shared/types/index.ts:201–213`) untouched.
+- Preload bridge (`src/preload/index.ts:81–82`): `mergePsdSources: (payload: MergePsdRequest): Promise<MergePsdResult>` → `ipcRenderer.invoke('merge-psd-sources', payload)` — matches.
+- Handler (`src/main/ipc/handlers.ts:421–439`): validates `payload.filePaths`, returns `psdMergeService.merge(...)` result verbatim. Response shape = `MergePsdResult`.
+- Renderer consumer (`src/renderer/src/components/MergePsdModal.tsx:75`): `window.api.mergePsdSources({ filePaths: orderedPaths })` — unchanged contract. No modifications required.
 
-## 4. 빌드 / 타입체크
+### 5. Resource cleanup — PASS
+- `runWorker` (service.ts:80–114) uses a `settled` latch + `finish()` helper that calls `worker.terminate().catch(() => {})` on **every** resolve/reject path: `done` message, `error` message, `worker.on('error')`, and unexpected `exit`.
+- Staging file cleanup: worker's `try/finally` in `run()` guarantees `rm(stagingPath, { force: true })` runs whether the encode succeeds, throws, or the process is about to die. The `error` IPC message is sent from the top-level `.catch()` **after** the inner `finally` completes.
 
-- [PASS] `npx tsc --noEmit -p tsconfig.node.json` — 0 errors.
-- [PASS] `npx tsc --noEmit -p tsconfig.json` — 0 errors.
-- [WARN] `npx tsc --noEmit -p tsconfig.web.json` — 3 errors, **all pre-existing, unrelated to PSD**:
-  - `src/renderer/src/pages/ExportPage.dom.test.tsx:179` — `Property 'at' does not exist on type 'Toast[]'`
-  - `src/renderer/src/pages/WorkspacePage.dom.test.tsx:168,183` — same `Toast[]` `.at()`
-  - Root cause: `lib` compiler option older than ES2022. Not introduced by the PSD changes (the PSD commit touches only `i18n/*.ts` and `HomePage.tsx:213` in the renderer — none of these files nor `Toast[]`). Last commit touching the failing test files: `41a35fb` (image slice feature, pre-existing).
-  - **Out of scope** for this task; should be fixed separately by bumping the web tsconfig `lib` to `ES2022` or using `arr[arr.length-1]` in tests.
-- [PASS] `npx electron-vite build` — clean. Emits: main `index.js` 62.76 kB, `workers/job.worker.js` 5.07 kB, `workers/psd.worker.js` 2.33 kB, preload `index.js` 2.76 kB, renderer bundle.
+### 6. Typecheck / build — PASS
+- `npx tsc --noEmit -p tsconfig.node.json` → clean, no output.
+- `npx tsc --noEmit -p tsconfig.json` → clean, no output.
+- `npx electron-vite build` → clean. main 65.96 kB, `workers/psd-merge.worker.js` 4.37 kB, preload 2.85 kB, renderer 811.61 kB. No warnings.
 
-## 5. 테스트
+### 7. Tests — PASS
+- `npx vitest run` → **28 files / 471 tests passed** (3.37 s total). Matches main-developer's reported number exactly (+1 from prior 470 due to fifth psd-merge case).
+- `psd-merge.service.test.ts` (5/5 passed, 30 ms): uses `InlineMergeWorker` factory override via `protected createWorker` — verified by reading test lines 51–169. `lastWorkerPath` + `lastWorkerInput` spies confirm the service calls `getWorkerPath()` with the expected envelope. `InlineErrorWorker` covers the reject path. Tests run **without** a prior `electron-vite build` (the old `describe.runIf(existsSync(...))` gate is removed), so CI is unaffected by build ordering.
 
-- [PASS] `npx vitest run` — **460/460 passed across 27 files** (3.06 s). No regressions.
-- [PASS] `src/main/services/psd.service.test.ts` — **7/7 passed** (214 ms). Covers:
-  - `getPageDimensions` correct dimensions, rejects missing file, rejects corrupted file.
-  - `renderAllPagesRaw` single onPage call with `pageNumber=1`, `pageCount=1`, buffer length `W*H*4`, rejects missing file.
-  - `SourceService` routes `.psd` to PSD renderer, does NOT route `.jpg` to PSD renderer.
-- [PASS] The `describe.runIf(hasBuiltWorker)` gate confirmed: built worker exists at `dist-electron/main/workers/psd.worker.js`, so the full PsdService suite actually executed (not skipped).
-- [PASS] PDF (`pdf.service.test.ts` 7, `pdf.service.integration.test.ts` 1, `pdf-folder-resolution.test.ts` 17), image, slice (58), export (39), job-execution (25), handlers (9), preload (7), shared constants (45), renderer DOM suites — all green.
+### 8. Electron packaging — PASS
+- `package.json:34–40` includes `"dist-electron/**/*"` in the `files` allowlist — the new `workers/psd-merge.worker.js` ships automatically.
+- `asarUnpack` (package.json:78–81) is `sharp/**` + `@napi-rs/canvas/**` only; the worker itself is pure JS and correctly runs from inside the ASAR.
+- No changes required to packaging config.
 
-## 6. Dependency 위생
+### 9. `main/index.ts` wiring — PASS
+- `src/main/index.ts:120`: `const psdMergeService = new PsdMergeService()` — **no argument**, matches the new zero-param constructor.
+- `src/main/index.ts:117,119`: `psdService` is kept solely for `sourceService.addRenderer(isPsdFile, psdService)`. It is **not** passed to `PsdMergeService` anymore. Clean separation.
+- `ipcState` registration (index.ts:128–138) still passes `psdMergeService` in the services bag.
 
-- [PASS] `ag-psd` in `dependencies` (not devDependencies) — `package.json:108-119` block lists `"ag-psd": "^30.1.1"`.
-- [PASS] Version `30.1.1` installed and present in `package-lock.json` (grep returns a match).
-- [PASS] No unrelated dep changes (spot check of `package.json` diff vs HEAD).
-- [PASS] ag-psd main entry `dist/index.js` exists and exposes `initializeCanvas`, `readPsd`, `writePsdBuffer` (used by worker and test).
+### 10. Latent risks — PASS (with one note)
+- **Staging filename collision**: output path = `os.tmpdir()/toonshark-merged/merged_{epochMs}_{hash8}.png`. `hash8 = sha1(filePaths.join('|') + epochMs).slice(0,8)`. Even simultaneous merges of the same file list produce different `epochMs` → different hash. Collision probability effectively zero. **PASS.**
+- **Disk space for staging**: `maxWidth × totalHeight × 4` bytes. Worst case cited (30 files × ~10 000 px tall × 2 000 px wide × 4 B ≈ 2.4 GB) is well within typical free space; pathological inputs (30 × 15 000 tall at 2 000 wide = ~3.6 GB) would surface as an `fh.write` ENOSPC → worker emits `{ type: 'error', message }` → service rejects with an `Error` whose message is the raw ENOSPC text → handler wraps as `"Failed to merge PSD sources: ENOSPC…"` → renderer surfaces via `addToast('error', …)`. Error is propagated intact; no silent loss. **PASS** (follow-up: consider a pre-flight disk-space check if this turns out to bite real users).
 
-## 7. Electron-builder packaging
+---
 
-- [PASS] `package.json.build.asarUnpack` unchanged — correct. ag-psd is pure JS; no native binding requires unpack. Existing entries (`sharp`, `@napi-rs/canvas`) untouched.
-- [PASS] `build.files` filter `!node_modules/**/*.{md,ts,map}` excludes `.ts` and `.d.ts` (types) and source maps, but ag-psd's runtime is `*.js` files in `node_modules/ag-psd/dist/` — those are kept. Verified by inspecting `dist/` listing (`.js` and `.js.map`; the `.map` files exclusion is intentional and safe at runtime).
-- [PASS] `build.files` inclusion `node_modules/**/*` ensures `ag-psd` ships in the packaged app.
-- Note: `@napi-rs/canvas` is already in `asarUnpack` (needed because it loads native `.node` bindings at runtime). The PSD worker uses `@napi-rs/canvas` — wiring is pre-existing; no change needed.
+## Files modified by QA
+None. All verification was read-only.
 
-## 8. 런타임 동작 정적 분석
+---
 
-- [PASS] `src/main/index.ts:7-11,116-117` — imports `PsdService` and `isPsdFile`, calls `sourceService.addRenderer(isPsdFile, new PsdService())` immediately after `SourceService` construction.
-- [PASS] `src/main/workers/job.worker.ts:7,12,36-41` — same wiring inside the worker's `execute()`. Inline comment documents the nested-worker intention.
-- [PASS] Renderer UI:
-  - `HomePage.tsx:213` — empty-state label `"PDF / JPG / PNG / PSD"` (hardcoded, intentional).
-  - `HomePage.tsx:216,223` — `{t.dropFileHere}` binds i18n; both `ko.ts:21` and `en.ts:222` updated with PSD mention.
-  - `OptionPanel.tsx` uses `isPdfFile(filePath)` for `showPdfScale` — PSD returns false → scale slider hidden. Contract-aligned, no change needed.
-  - `WorkspacePage.tsx` gates `pdfScale` param by `isPdfFile(activeFilePath)` — PSD omits `pdfScale`, which `PsdService.renderAllPagesRaw` ignores anyway. Consistent.
-  - `useFileDrop.ts` uses `isSupportedFile()` (shared) — `.psd` flows through automatically.
-  - File-type chips via `getFileExtension().toUpperCase()` — PSD automatically shown as `PSD`.
-- [PASS] i18n key `dropFileHere` exists in both locales and is consumed by `HomePage.tsx`.
+## Peak-memory improvement review
 
-## 9. 문서 / 주석
+Spot-checked against main-developer's table. Matches the code:
 
-- [PASS] `psd.service.ts:14-21` — header JSDoc explains single-page convention, worker offloading, transferable buffer rationale.
-- [PASS] `psd.worker.ts:7-13` — comments explain `initializeCanvas` fallback rationale and why Node's worker doesn't have `HTMLCanvasElement`.
-- [PASS] `job.worker.ts:37-40` — comment documents the intentional nested-worker pattern (job.worker → psd.worker).
-- [INFO] No security issues noted; PSD parsing is fully in a worker with a hard upper bound on unexpected behavior (worker exit → rejected promise).
+| Resource | Before | After | Verdict |
+| --- | --- | --- | --- |
+| Concurrent original file buffers | N (up to 30 × 200MB ≈ 6GB) | 1 (per-iteration block scope) | Code at worker.ts:84, 126 confirms |
+| Concurrent decoded RGBA | N padded strips | 1 stripe per iteration | Code at worker.ts:136 confirms |
+| Sharp composite intermediate | full `maxWidth × totalHeight × 4` canvas | **none** — streams from disk | `sequentialRead: true` + raw input at worker.ts:182–186 confirms |
+| PNG encode buffer | full in-memory | streaming, `compressionLevel: 3` | worker.ts:187 confirms |
+| Process | main (V8 heap capped) | worker (own heap) | Service no longer imports sharp/ag-psd; confirmed |
 
-## 수정한 파일
+**Net:** main process peak memory ≈ unchanged baseline (no RGBA touches it). Worker peak ≈ `max(file_i_bytes) + (maxWidth × max_h_i × 4)`, typically <1 GB per file. **Claim matches implementation.**
 
-**없음.** All cross-boundary checks passed. The three pre-existing tsc errors in renderer DOM tests (`Toast[].at()`) are out of scope and were present on `main` before the PSD work (last touched in `41a35fb`, the image-slice commit).
+---
 
-## 최종 빌드 / 테스트 결과
+## Build & test summary
 
-- `npx tsc --noEmit -p tsconfig.node.json`: **0 errors**
-- `npx tsc --noEmit -p tsconfig.json`: **0 errors**
-- `npx tsc --noEmit -p tsconfig.web.json`: **3 errors, all pre-existing, unrelated to PSD** (WARN — see §4)
-- `npx electron-vite build`: **clean**; `psd.worker.js` (2.33 kB) and `job.worker.js` (5.07 kB) emitted
-- `npx vitest run`: **460 tests passed across 27 files** (3.06 s); PSD suite 7/7
+| Check | Result |
+| --- | --- |
+| `npx tsc --noEmit -p tsconfig.node.json` | PASS (no output) |
+| `npx tsc --noEmit -p tsconfig.json` | PASS (no output) |
+| `npx electron-vite build` | PASS (main 65.96 kB, worker 4.37 kB, preload 2.85 kB, renderer 811.61 kB) |
+| `npx vitest run` | **471 / 471 passed** (28 files, 3.37 s) |
+| `psd-merge.service.test.ts` | 5 / 5 passed (30 ms) — InlineMergeWorker override path exercised |
 
-## 배포 / 런타임 주의사항
+---
 
-1. **실제 PSD 파일 end-to-end 수동 테스트 필요.** The automated suite uses ag-psd-generated test fixtures (120×80 and 64×48 with a solid-color `imageData`). Real-world PSDs often lack composite `imageData` and rely on layer reconstruction, which exercises the canvas fallback path in `psd.worker.ts:73-89`. Suggested manual smoke: (a) modern Photoshop save with "Maximize Compatibility" on (composite present — fast path), (b) layered PSD saved without compat mode (canvas fallback), (c) large (>500 MB) PSD (memory pressure check), (d) full end-to-end slicing from HomePage drop → Workspace → Export.
-2. **Nested worker thread model.** `job.worker` spawns `psd.worker` for each slicing run. Intended and documented; keeps progress messages flowing during heavy PSD parse. No action needed; just be aware when profiling thread counts.
-3. **Full-file memory.** ag-psd requires the entire PSD in memory. For multi-GB PSDs, expect RSS spikes. Contract-acknowledged.
-4. **PSB unsupported.** File filter is `.psd` only; ag-psd technically supports PSB but we haven't whitelisted it. If user feedback requests, adding `psb` to `getDialogFilters()` and `isPsdFile` is a one-line change.
-5. **Pre-existing web tsconfig errors.** Unrelated to this PR. Fix separately: bump `lib` to `ES2022` in `tsconfig.web.json` or switch `arr.at(-1)` to `arr[arr.length - 1]` in the two DOM test files. Does not block PSD shipping.
+## Manual smoke-test checklist (pre-ship)
 
-## 전체 판정
+1. **The bug repro**: drag-and-drop 30 × real 200 MB PSDs into the merge modal. Confirm:
+   - Main process memory (Activity Monitor / Task Manager) stays flat (~200–300 MB) throughout.
+   - Worker thread memory grows then releases per file (expect <1 GB peak per iteration).
+   - No OOM shutdown, no renderer freeze.
+2. **Merged PNG correctness**: open the produced `merged_{epochMs}_{hash8}.png`. Verify:
+   - Width = max PSD width, height = sum of PSD heights.
+   - Right-edge padding of narrow files is opaque white (not transparent / not black).
+   - Vertical order matches the modal's ordered list.
+3. **End-to-end flow**: merged PNG → slice → preview → export. Confirm the merge output works as a normal source and produces expected slice tiles.
+4. **Cancel / error paths**:
+   - Mid-merge, kill a source file (rename away). Expect an error toast with a readable message; staging file absent from `os.tmpdir()/toonshark-merged/`.
+   - Fill disk to near-full before merging. Expect ENOSPC error surfaced to toast (not a silent crash); staging file absent.
+5. **Concurrent merges**: trigger two merges back-to-back (if the UI allows). Output filenames must differ (hash8 + epochMs guarantees this).
+6. **Packaging test** (before release): `npx electron-builder` → install the dmg/exe → repeat step 1 on the packaged app. Verify the worker resolves from inside ASAR (expect `__dirname/../workers/...` path to win).
 
-**READY TO SHIP.**
+---
 
-All PSD-specific cross-boundary checks pass. Build clean, 460/460 tests green, cross-process wiring (main + job.worker) consistent, shared contracts honored, renderer UI reachable via existing helpers. Only outstanding issue is pre-existing renderer typecheck noise that this PR did not introduce and does not affect runtime. Recommend manual smoke-testing with at least one real-world PSD (especially a layered one without a composite) before cutting a release, to exercise the canvas fallback in the worker.
+## Summary
+
+- PASS: **10 / 10** items
+- FAIL: 0
+- WARN: 0
+- Files modified by QA: 0
+
+**Verdict: READY TO SHIP.** The implementation matches main-developer's description, the IPC contract is preserved byte-for-byte, all 471 tests pass, both typechecks are clean, and the build produces the expected worker artifact. The main process no longer touches Sharp or large RGBA buffers, so the 30 × 200 MB OOM scenario is architecturally resolved. Recommend running the manual smoke-test checklist above on the packaged app before cutting the release.

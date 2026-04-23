@@ -61,7 +61,11 @@ export class JobExecutionService {
   }
 
   protected createWorker(workerPath: string): Worker {
-    return new Worker(workerPath)
+    // Merged PSD sources can produce multi-GB raw RGBA buffers in this worker.
+    // The V8 default (~1.5GB for workers) OOMs immediately; bump to 8GB.
+    return new Worker(workerPath, {
+      resourceLimits: { maxOldGenerationSizeMb: 8192 }
+    })
   }
 
   /**

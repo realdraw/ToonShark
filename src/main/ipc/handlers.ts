@@ -6,6 +6,7 @@ import type {JobRepository} from '../services/job-repository'
 import type {JobExecutionService} from '../services/job-execution.service'
 import type {ExportService} from '../services/export.service'
 import type {SourceService} from '../services/source.service'
+import type {PsdMergeService} from '../services/psd-merge.service'
 import type {Logger} from '../services/logger.service'
 import type {
   AppSettings,
@@ -13,9 +14,10 @@ import type {
   DevicePreset,
   ExportJobPayload,
   JobProgress,
+  MergePsdRequest,
   RunSliceJobPayload
 } from '@shared/types'
-import {DEFAULT_SETTINGS, PDF_SCALE_MAX, PDF_SCALE_MIN, getDialogFilters, isSupportedFile} from '@shared/constants'
+import {DEFAULT_SETTINGS, PDF_SCALE_MAX, PDF_SCALE_MIN, getDialogFilters, isInternalPipelineFile, isSupportedFile} from '@shared/constants'
 import {toErrorMessage} from '@shared/utils'
 
 type Services = {
@@ -25,6 +27,7 @@ type Services = {
   jobExecutionService: JobExecutionService
   exportService: ExportService
   sourceService: SourceService
+  psdMergeService: PsdMergeService
   logger: Logger
   getMainWindow: () => BrowserWindow | null
 }
@@ -402,16 +405,42 @@ function registerJobHandlers(services: Services) {
 }
 
 function registerSourceHandlers(services: Services) {
-  const { sourceService, logger } = services
+  const { sourceService, psdMergeService, logger } = services
 
   ipcMain.handle('get-source-dimensions', async (_event, filePath: string) => {
     if (typeof filePath !== 'string' || !filePath) throw new Error('Invalid path')
-    if (!isSupportedFile(filePath)) throw new Error('Unsupported file type')
+    // Accept user-facing formats AND internal pipeline outputs (e.g. `.rgba`
+    // emitted by PsdMergeService). `.rgba` is never drop-eligible — we only
+    // accept it here because the renderer queries dimensions for the tab it
+    // just opened from the merge result.
+    if (!isSupportedFile(filePath) && !isInternalPipelineFile(filePath)) {
+      throw new Error('Unsupported file type')
+    }
     try {
       return await sourceService.getPageDimensions(filePath)
     } catch (err) {
       logger.error('Failed to get source dimensions', err)
       throw new Error(`Failed to get source dimensions: ${toErrorMessage(err)}`)
+    }
+  })
+
+  ipcMain.handle('merge-psd-sources', async (_event, payload: MergePsdRequest) => {
+    if (!payload || !Array.isArray(payload.filePaths)) {
+      throw new Error('Invalid merge payload')
+    }
+    logger.info('Merge PSD sources started', { count: payload.filePaths.length })
+    try {
+      const result = await psdMergeService.merge(payload.filePaths)
+      logger.info('Merge PSD sources completed', {
+        outputPath: result.outputPath,
+        width: result.width,
+        height: result.height,
+        sourceCount: result.sourceCount
+      })
+      return result
+    } catch (err) {
+      logger.error('merge-psd-sources failed', err)
+      throw new Error(`Failed to merge PSD sources: ${toErrorMessage(err)}`)
     }
   })
 }
