@@ -37,6 +37,7 @@ ToonShark takes a webtoon source file (PDF, JPG/PNG, or PSD), splits it into ind
 ### Key features
 
 - **Multi-format input** — PDF, JPG, PNG, and PSD (Photoshop) files
+- **Multi-PSD merge** — drop 2+ PSDs at once to stitch them vertically into a single source, then slice as one (worker-thread parsing + disk-streaming pipeline handles 400M+ pixel canvases without OOM)
 - **Auto slice** — detects cut boundaries by analyzing white margins between panels
 - **Fixed slice** — mechanically splits at a uniform pixel height
 - **Multi-file workspace** — open and process multiple source files in tabs
